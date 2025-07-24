@@ -2,7 +2,7 @@
 
 ## 1.1. Team Information
 
-Our team, "ahjin Guild," is a dynamic group of five students from Sreenidhi Institute of Science and Technology. Our collective expertise spans the full-stack development lifecycle, data science, AI/ML, and strategic growth marketing, making us perfectly equipped for this challenge.
+Our team, "ahjin Guild," is a dynamic group of five students from Sreenidhi Institute of Science and Technology. Our collective expertise spans the full-stack development lifecycle, data science, UI/UX design, and strategic growth marketing, making us perfectly equipped for this challenge.
 
 | Name             | Proposed Role                     | Key Skills & Experience (Based on Profiles)                                                                                                    |
 | ---------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -10,7 +10,7 @@ Our team, "ahjin Guild," is a dynamic group of five students from Sreenidhi Inst
 | **Lakshya Chitkul**| **Full-Stack Developer & AI/ML Lead** | Versatile developer with a backend focus (Python, Django) and frontend skills (React). Experienced with Machine Learning concepts and SQL databases. |
 | **Eesha Gone** | **Data Scientist & Product Lead** | 4th-year Data Science student skilled in Python (NumPy, Pandas), ML (scikit-learn), SQL, and data visualization tools (Power BI, Tableau). |
 | **Architha Reddy** | **Growth & Marketing Lead** | 3rd-year CSE-AIML student with proven experience in Content Strategy, Social Media Marketing, and Event Management from leadership roles in college clubs. |
-| **Bommu Bhavani** | **AI/Streamlit Developer** | AIML student with hands-on project experience in Streamlit, Python, TensorFlow & Mediapipe (Yoga Pose Detection). Data analytics internship. |
+| **Bommu Bhavani** | **AI/Streamlit Developer** | AIML student with hands-on project experience using **Streamlit, Python, and AI libraries (TensorFlow/Mediapipe)**. Strong foundation in **Java, C, SQL, and Web Technologies (HTML/CSS)**. Excellent communication and problem-solving skills. |
 
 
 ## 1.2. Application Overview
