@@ -2,15 +2,14 @@
 
 ## 1.1. Team Information
 
-Our team, "ahjin Guild," is a versatile group of students with a powerful technical core, featuring two full-stack developers, and strong expertise in design, marketing, and AI concepts.
+Our team, "ahjin Guild," is a dynamic group of students from Sreenidhi Institute of Science and Technology. Our collective expertise spans the full-stack development lifecycle, data science, UI/UX design, and strategic growth marketing, making us perfectly equipped for this challenge.
 
-| Name             | Proposed Role                     | Key Skills & Experience                                                                                             |
-| ---------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| **Prem Sai** | **Tech Lead & Full-Stack Developer** | Full-Stack (React, Node, Firebase), C++, Git/GitHub, Linux, Figma. Experience in frontend projects & content writing. |
-| **Lakshya Chitkul**| **Full-Stack Developer & AI/ML Lead** | Full-Stack (Python, Django, React), ML, SQL. Backend & ML focus.                                                    |
-| **Eesha Gone** | **Product & UI/UX Lead** | UI/UX Design, Content Writing, Python. Experience with frontend development.                                        |
-| **Architha Reddy** | **Growth & Marketing Lead** | Content Strategy & Marketing, Social Media, Event Management. Experience as Publicity & Organising Lead.              |
-
+| Name             | Proposed Role                     | Key Skills & Experience (Based on Profiles)                                                                                                    |
+| ---------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Prem Sai** | **Tech Lead & Full-Stack Developer** | Aspiring SDE with a full-stack focus (React, Node, Firebase). Proficient in C++, DSA, Git/GitHub, Linux, and Figma. Proven drive and project experience. |
+| **Lakshya Chitkul**| **Full-Stack Developer & AI/ML Lead** | Versatile developer with a backend focus (Python, Django) and frontend skills (React). Experienced with Machine Learning concepts and SQL databases. |
+| **Eesha Gone** | **Data Scientist & Product Lead** | 4th-year Data Science student skilled in Python (NumPy, Pandas), ML (scikit-learn), SQL, and data visualization tools (Power BI, Tableau). |
+| **Architha Reddy** | **Growth & Marketing Lead** | 3rd-year CSE-AIML student with proven experience in Content Strategy, Social Media Marketing, and Event Management from leadership roles in college clubs. |
 
 
 ## 1.2. Application Overview
@@ -19,18 +18,19 @@ Our project, the "Desi Dialect Map," is an interactive, gamified Streamlit appli
 
 ## 1.3. AI Integration Details
 
-The primary AI value is in the unique **corpus** we are creating. The project will be led by our AI/ML Lead, Lakshya, leveraging his skills in Python and Machine Learning.
-1.  **Corpus Management:** Lakshya's experience with Python and SQL will be crucial for designing a clean, structured database schema to store the incoming text, audio, and location data efficiently.
-2.  **Future AI Roadmap:** The collected dataset is the perfect foundation for advanced AI models. Our vision includes training a localized speech-to-text model, a vernacular voice assistant, or an AI that can predict a user's region based on their word choice. This plan makes our project a sustainable data engine for future AI research at viswam.ai.
+The primary AI value is in the unique **corpus** we are creating. Our data-focused approach leverages the specific skills of our team:
+1.  **Corpus Management & Architecture:** **Lakshya**, as our AI/ML lead, will architect the data pipeline and database schema (using SQL) to ensure the collected data is clean, structured, and ready for analysis.
+2.  **Data Analysis & Insights:** **Eesha**, as our team's Data Scientist, will play a key role in the later stages by analyzing the collected corpus using Python libraries like Pandas and Matplotlib to uncover linguistic patterns and insights, which can guide future feature development.
+3.  **Future AI Roadmap:** The dataset is a springboard for advanced AI. Our vision includes training localized speech-to-text models and creating data visualizations with Tableau/Power BI to showcase the project's impact, making it a sustainable engine for viswam.ai.
 
 ## 1.4. Technical Architecture & Development
 
 * **Framework:** Streamlit
 * **Deployment:** Hugging Face Spaces
 * **Language:** Python
-* **Development:** With two strong full-stack developers, **Prem** and **Lakshya**, our team has the flexibility to efficiently tackle both frontend and backend tasks, ensuring rapid development. Prem's experience with Firebase and Lakshya's SQL knowledge give us robust database options.
-* **Frontend & Design:** **Eesha's** UI/UX and content writing expertise will guide the user experience, with **Prem's** Figma skills used for wireframing.
-* **Version Control:** The entire team will operate under a strict Git workflow, managed by Prem, to ensure smooth collaboration.
+* **Development:** With two strong full-stack developers, **Prem** and **Lakshya**, our team can rapidly prototype and build a robust application, handling everything from UI components to backend logic.
+* **Frontend & Design:** **Eesha's** data-centric approach and **Prem's** Figma skills will guide the creation of an intuitive and engaging UI that makes data contribution effortless for the user.
+* **Version Control:** The entire team will operate under a strict Git workflow, managed by **Prem**, to ensure smooth collaboration.
 
 ## 1.6. Project Lifecycle & Roadmap
 
@@ -38,15 +38,15 @@ The primary AI value is in the unique **corpus** we are creating. The project wi
 
 * **Day 1-2:** **Eesha** to lead and finalize the UI/UX design in Figma. **Prem** to set up the initial Streamlit app structure.
 * **Day 3-4:** **Prem** and **Lakshya**, as our full-stack developers, will spearhead the core application development, building out both the UI components and the backend logic for data submission.
-* **Day 5-6:** Integration of the database (Firebase/SQL) and end-to-end testing of the user flow. Team-wide bug bash.
+* **Day 5-6:** Integration of the database (SQL) and end-to-end testing of the user flow. Team-wide bug bash.
 * **Day 7:** Deploy the functional MVP to Hugging Face Spaces. **Architha** to begin preparing initial promotional content based on the live app.
 
 ### C. Weeks 3-4: User Acquisition & Corpus Growth Campaign
 
-This phase is our top priority and will be led by our Growth & Marketing Lead, **Architha Reddy**, leveraging her extensive experience in event management, social media, and content strategy from her leadership roles at SDC SNIST and E-SPORTSCLUB.
+This phase is our top priority. It will be led by our Growth & Marketing Lead, **Architha Reddy**, a CSE-AIML student who possesses proven experience in community building and marketing from her leadership roles at SNIST.
 
-* **Target Audience:** Primarily college students (ages 18-24) across Telangana and Andhra Pradesh, expanding to other regions. We will also target local community groups.
+* **Target Audience:** Primarily college students (ages 18-24) at SNIST and other Hyderabad colleges, expanding to other regions. We will also target local community groups online.
 * **Channels:** University WhatsApp/Telegram groups, SNIST-wide announcements, collaborations with other college tech/cultural fests, and posts on regional subreddits and Instagram pages.
 * **Growth Strategy & Messaging:**
     * **Campaign Theme:** "Put Your Dialect on the Map!"
-    * **Execution:** Architha will spearhead the creation of shareable content, including posters and short videos. Eesha and Prem will assist with content writing. We will run a "Dialect of the Week" feature on social media, highlighting the most interesting submissions to drive engagement. We will gamify the experience by creating a leaderboard showing which college has contributed the most words, fostering a friendly competitive spirit. This strategy is designed for viral, organic growth, which is essential for massive corpus collection.
+    * **Execution:** **Architha** will spearhead the creation of shareable content (posters, videos), leveraging her content strategy skills. **Eesha** and **Prem**, with their content and design experience, will support this effort. We will run a "Dialect of the Week" feature on social media, highlighting interesting submissions to drive engagement. A leaderboard showing which college has contributed the most words will gamify the experience and foster friendly competition, driving the viral growth essential for massive corpus collection.
