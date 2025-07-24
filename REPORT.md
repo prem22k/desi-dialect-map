@@ -2,7 +2,7 @@
 
 ## 1.1. Team Information
 
-Our team, "ahjin Guild," is a dynamic group of students from Sreenidhi Institute of Science and Technology. Our collective expertise spans the full-stack development lifecycle, data science, UI/UX design, and strategic growth marketing, making us perfectly equipped for this challenge.
+Our team, "ahjin Guild," is a dynamic group of five students from Sreenidhi Institute of Science and Technology. Our collective expertise spans the full-stack development lifecycle, data science, AI/ML, and strategic growth marketing, making us perfectly equipped for this challenge.
 
 | Name             | Proposed Role                     | Key Skills & Experience (Based on Profiles)                                                                                                    |
 | ---------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -10,6 +10,7 @@ Our team, "ahjin Guild," is a dynamic group of students from Sreenidhi Institute
 | **Lakshya Chitkul**| **Full-Stack Developer & AI/ML Lead** | Versatile developer with a backend focus (Python, Django) and frontend skills (React). Experienced with Machine Learning concepts and SQL databases. |
 | **Eesha Gone** | **Data Scientist & Product Lead** | 4th-year Data Science student skilled in Python (NumPy, Pandas), ML (scikit-learn), SQL, and data visualization tools (Power BI, Tableau). |
 | **Architha Reddy** | **Growth & Marketing Lead** | 3rd-year CSE-AIML student with proven experience in Content Strategy, Social Media Marketing, and Event Management from leadership roles in college clubs. |
+| **Bommu Bhavani** | **AI/Streamlit Developer** | AIML student with hands-on project experience in Streamlit, Python, TensorFlow & Mediapipe (Yoga Pose Detection). Data analytics internship. |
 
 
 ## 1.2. Application Overview
@@ -28,7 +29,7 @@ The primary AI value is in the unique **corpus** we are creating. Our data-focus
 * **Framework:** Streamlit
 * **Deployment:** Hugging Face Spaces
 * **Language:** Python
-* **Development:** With two strong full-stack developers, **Prem** and **Lakshya**, our team can rapidly prototype and build a robust application, handling everything from UI components to backend logic.
+* **Development:** With two strong full-stack developers, **Prem** and **Lakshya**, and a dedicated Streamlit developer, **Bhavani**, our team can rapidly prototype and build a robust application.
 * **Frontend & Design:** **Eesha's** data-centric approach and **Prem's** Figma skills will guide the creation of an intuitive and engaging UI that makes data contribution effortless for the user.
 * **Version Control:** The entire team will operate under a strict Git workflow, managed by **Prem**, to ensure smooth collaboration.
 
@@ -39,7 +40,7 @@ This section details our plan and execution across the 4-week timeline.
 ### A. Week 1: Rapid Development Sprint
 
 * **Day 1-2:** **Eesha** to lead and finalize the UI/UX design in Figma. **Prem** to set up the initial Streamlit app structure.
-* **Day 3-4:** **Prem** and **Lakshya**, as our full-stack developers, will spearhead the core application development, building out both the UI components and the backend logic for data submission.
+* **Day 3-4:** **Prem**, **Lakshya**, and **Bhavani** will spearhead the core application development, building out the UI, backend logic, and data submission flow.
 * **Day 5-6:** Integration of the database (SQL) and end-to-end testing of the user flow. Team-wide bug bash.
 * **Day 7:** Deploy the functional MVP to Hugging Face Spaces. **Architha** to begin preparing initial promotional content based on the live app.
 
@@ -59,12 +60,12 @@ This phase is our top priority. It will be led by our Growth & Marketing Lead, *
 * **Channels:** University WhatsApp/Telegram groups, SNIST-wide announcements, collaborations with other college tech/cultural fests, and posts on regional subreddits and Instagram pages.
 * **Growth Strategy & Messaging:**
     * **Campaign Theme:** "Put Your Dialect on the Map!"
-    * **Execution:** **Architha** will spearhead the creation of shareable content (posters, videos), leveraging her content strategy skills. **Eesha** and **Prem**, with their content and design experience, will support this effort. We will run a "Dialect of the Week" feature on social media, highlighting interesting submissions to drive engagement. A leaderboard showing which college has contributed the most words will gamify the experience and foster friendly competition, driving the viral growth essential for massive corpus collection.
+    * **Execution:** **Architha** will spearhead the creation of shareable content (posters, videos). **Eesha** and **Prem**, with their content and design experience, will support this effort. We will run a "Dialect of the Week" feature on social media, highlighting interesting submissions to drive engagement. A leaderboard showing which college has contributed the most words will gamify the experience and foster friendly competition, driving the viral growth essential for massive corpus collection.
 
 ### D. Post-Internship Vision & Sustainability Plan
 
 Our vision for the "Desi Dialect Map" extends beyond this internship. We see it as a living project with long-term value for viswam.ai and the open-source community.
 
-* **Major Future Features:** We plan to introduce a gamified user leaderboard to boost engagement, expand the app to include regional phrases and idioms (not just single words), and develop a "Linguistic Atlas" view for deeper data exploration.
+* **Major Future Features:** We plan to introduce a gamified user leaderboard to boost engagement, expand the app to include regional phrases and idioms, and develop a "Linguistic Atlas" view for deeper data exploration.
 * **Community Building:** We aim to build a community of "Language Guardians" on platforms like Discord or Telegram, who can help validate submissions and promote the app in their local regions.
 * **Sustainability:** The project's ultimate success is in the high-quality corpus it provides to **viswam.ai**. We are committed to open-sourcing all our code and methodologies, allowing other researchers and developers to build upon our work and contribute to the mission of preserving India's linguistic heritage.
