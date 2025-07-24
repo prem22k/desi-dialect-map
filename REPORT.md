@@ -2,14 +2,15 @@
 
 ## 1.1. Team Information
 
-Our team, "ahjin Guild," is a versatile group of students with a balanced skill set covering project leadership, full-stack development, UI/UX design, AI/ML, and growth marketing.
+Our team, "ahjin Guild," is a versatile group of students with a powerful technical core, featuring two full-stack developers, and strong expertise in design, marketing, and AI concepts.
 
-| Name             | Proposed Role             | Key Skills & Experience                                                                                             |
-| ---------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| **Prem Sai** | **Tech Lead & Frontend** | Full-Stack learning (React, Node, Firebase), C++, Git/GitHub, Linux, Figma. Experience in frontend projects & content writing. |
-| **Lakshya Chitkul**| **Backend & AI/ML Lead** | Python, Django, React, ML, SQL for database management. Backend focus.                                              |
-| **Eesha Gone** | **Product & UI/UX Lead** | UI/UX Design, Content Writing, Python. Experience with frontend development on a hospital management system.           |
-| **Architha Reddy** | **Growth & Marketing Lead**| Content Strategy & Marketing, Social Media, Event Management & Planning. Experience as Publicity & Organising Lead. |
+| Name             | Proposed Role                     | Key Skills & Experience                                                                                             |
+| ---------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| **Prem Sai** | **Tech Lead & Full-Stack Developer** | Full-Stack (React, Node, Firebase), C++, Git/GitHub, Linux, Figma. Experience in frontend projects & content writing. |
+| **Lakshya Chitkul**| **Full-Stack Developer & AI/ML Lead** | Full-Stack (Python, Django, React), ML, SQL. Backend & ML focus.                                                    |
+| **Eesha Gone** | **Product & UI/UX Lead** | UI/UX Design, Content Writing, Python. Experience with frontend development.                                        |
+| **Architha Reddy** | **Growth & Marketing Lead** | Content Strategy & Marketing, Social Media, Event Management. Experience as Publicity & Organising Lead.              |
+
 
 
 ## 1.2. Application Overview
@@ -18,7 +19,7 @@ Our project, the "Desi Dialect Map," is an interactive, gamified Streamlit appli
 
 ## 1.3. AI Integration Details
 
-The primary AI value is in the unique **corpus** we are creating. The project will be led by our Backend & AI/ML Lead, Lakshya, leveraging his skills in Python and Machine Learning.
+The primary AI value is in the unique **corpus** we are creating. The project will be led by our AI/ML Lead, Lakshya, leveraging his skills in Python and Machine Learning.
 1.  **Corpus Management:** Lakshya's experience with Python and SQL will be crucial for designing a clean, structured database schema to store the incoming text, audio, and location data efficiently.
 2.  **Future AI Roadmap:** The collected dataset is the perfect foundation for advanced AI models. Our vision includes training a localized speech-to-text model, a vernacular voice assistant, or an AI that can predict a user's region based on their word choice. This plan makes our project a sustainable data engine for future AI research at viswam.ai.
 
@@ -27,17 +28,17 @@ The primary AI value is in the unique **corpus** we are creating. The project wi
 * **Framework:** Streamlit
 * **Deployment:** Hugging Face Spaces
 * **Language:** Python
-* **Database:** We will leverage Prem's experience with **Firebase** for its real-time capabilities and ease of integration, or Lakshya's SQL skills for a structured database like PostgreSQL.
-* **Frontend & Design:** Prem's frontend skills (HTML/CSS, JS, React) and Eesha's UI/UX and content writing expertise will ensure an intuitive and engaging user interface. Prem's Figma skills will be used for initial wireframing.
+* **Development:** With two strong full-stack developers, **Prem** and **Lakshya**, our team has the flexibility to efficiently tackle both frontend and backend tasks, ensuring rapid development. Prem's experience with Firebase and Lakshya's SQL knowledge give us robust database options.
+* **Frontend & Design:** **Eesha's** UI/UX and content writing expertise will guide the user experience, with **Prem's** Figma skills used for wireframing.
 * **Version Control:** The entire team will operate under a strict Git workflow, managed by Prem, to ensure smooth collaboration.
 
 ## 1.6. Project Lifecycle & Roadmap
 
 ### A. Week 1: Rapid Development Sprint Plan
 
-* **Day 1-2:** **Eesha** to lead UI/UX design in Figma. **Prem** to set up the Streamlit application, repository, and basic layout based on the designs.
-* **Day 3-4:** **Lakshya** to develop the backend logic for data submission and database integration (Firebase/SQL).
-* **Day 5-6:** **Prem** and **Lakshya** to integrate the frontend components with the backend logic. Team-wide testing for bugs.
+* **Day 1-2:** **Eesha** to lead and finalize the UI/UX design in Figma. **Prem** to set up the initial Streamlit app structure.
+* **Day 3-4:** **Prem** and **Lakshya**, as our full-stack developers, will spearhead the core application development, building out both the UI components and the backend logic for data submission.
+* **Day 5-6:** Integration of the database (Firebase/SQL) and end-to-end testing of the user flow. Team-wide bug bash.
 * **Day 7:** Deploy the functional MVP to Hugging Face Spaces. **Architha** to begin preparing initial promotional content based on the live app.
 
 ### C. Weeks 3-4: User Acquisition & Corpus Growth Campaign
