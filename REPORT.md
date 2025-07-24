@@ -2,15 +2,15 @@
 
 ## 1.1. Team Information
 
-Our team, "ahjin Guild," is a dynamic group of five students from Sreenidhi Institute of Science and Technology. Our collective expertise spans the full-stack development lifecycle, data science, UI/UX design, and strategic growth marketing, making us perfectly equipped for this challenge.
+Our team, "ahjin Guild," is a dynamic group of students from Sreenidhi Institute of Science and Technology. Our collective expertise spans the full-stack development lifecycle, data science, UI/UX design, and strategic growth marketing, making us perfectly equipped for this challenge.
 
 | Name             | Proposed Role                     | Key Skills & Experience (Based on Profiles)                                                                                                    |
 | ---------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Prem Sai** | **Tech Lead & Full-Stack Developer** | Aspiring SDE with a full-stack focus (React, Node, Firebase). Proficient in C++, DSA, Git/GitHub, Linux, and Figma. Proven drive and project experience. |
-| **Lakshya Chitkul**| **Full-Stack Developer & AI/ML Lead** | Versatile developer with a backend focus (Python, Django) and frontend skills (React). Experienced with Machine Learning concepts and SQL databases. |
-| **Eesha Gone** | **Data Scientist & Product Lead** | 4th-year Data Science student skilled in Python (NumPy, Pandas), ML (scikit-learn), SQL, and data visualization tools (Power BI, Tableau). |
-| **Architha Reddy** | **Growth & Marketing Lead** | 3rd-year CSE-AIML student with proven experience in Content Strategy, Social Media Marketing, and Event Management from leadership roles in college clubs. |
-| **Bommu Bhavani** | **AI/Streamlit Developer** | AIML student with hands-on project experience using **Streamlit, Python, and AI libraries (TensorFlow/Mediapipe)**. Strong foundation in **Java, C, SQL, and Web Technologies (HTML/CSS)**. Excellent communication and problem-solving skills. |
+| **Prem Sai K** | **Tech Lead & Full-Stack Developer** | 3rd-year student with a full-stack focus (React, Node, Firebase). Proficient in C++, DSA, Git/GitHub, Linux, and Figma. Proven drive. |
+| **Lakshya Chitkul**| **Full-Stack Developer & AI/ML Lead** | 3rd-year student and versatile developer with a backend focus (Python, Django). Experienced with Machine Learning concepts and SQL databases. |
+| **Eesha Gone** | **Data Scientist & Product Lead** | 4th-year Data Science student skilled in Python (NumPy, Pandas), ML, SQL, and data visualization tools (Power BI, Tableau). |
+| **Architha Reddy** | **Growth & Marketing Lead** | 3rd-year CSE-AIML student with proven experience in Content Strategy, Social Media Marketing, and Event Management from leadership roles. |
+| **Bommu Bhavani** | **Core Developer & Problem Solver** | 2nd-year student with a strong foundation in Java, C, and web fundamentals (HTML, CSS). Skilled in database management (MySQL) and problem-solving. |
 
 
 ## 1.2. Application Overview
@@ -29,7 +29,7 @@ The primary AI value is in the unique **corpus** we are creating. Our data-focus
 * **Framework:** Streamlit
 * **Deployment:** Hugging Face Spaces
 * **Language:** Python
-* **Development:** With two strong full-stack developers, **Prem** and **Lakshya**, and a dedicated Streamlit developer, **Bhavani**, our team can rapidly prototype and build a robust application.
+* **Development:** With two strong full-stack developers, **Prem** and **Lakshya**, and a core developer, **Bhavani**, our team has a robust foundation to rapidly prototype and build the application.
 * **Frontend & Design:** **Eesha's** data-centric approach and **Prem's** Figma skills will guide the creation of an intuitive and engaging UI that makes data contribution effortless for the user.
 * **Version Control:** The entire team will operate under a strict Git workflow, managed by **Prem**, to ensure smooth collaboration.
 
@@ -54,7 +54,7 @@ Our testing phase in Week 2 is designed to be agile and user-focused, ensuring o
 
 ### C. Weeks 3-4: User Acquisition & Corpus Growth Campaign
 
-This phase is our top priority. It will be led by our Growth & Marketing Lead, **Architha Reddy**, a CSE-AIML student who possesses proven experience in community building and marketing from her leadership roles at SNIST.
+This phase is our top priority. It will be led by our Growth & Marketing Lead, **Architha Reddy**, a 3rd-year CSE-AIML student who possesses proven experience in community building and marketing from her leadership roles at SNIST.
 
 * **Target Audience:** Primarily college students (ages 18-24) at SNIST and other Hyderabad colleges, expanding to other regions. We will also target local community groups online.
 * **Channels:** University WhatsApp/Telegram groups, SNIST-wide announcements, collaborations with other college tech/cultural fests, and posts on regional subreddits and Instagram pages.
