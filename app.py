@@ -5,6 +5,10 @@ import database as db
 from geopy.geocoders import Nominatim
 import io
 from PIL import Image
+import folium
+from streamlit_folium import st_folium
+from folium.plugins import HeatMap
+import base64
 
 # Initialize geolocator
 geolocator = Nominatim(user_agent="dialect_map_app")
@@ -77,11 +81,37 @@ def main():
     st.subheader("A Living Map of India's Languages")
     
     submissions_df = db.get_all_submissions(conn)
-    # Filter out submissions without coordinates for the map
     map_data = submissions_df.dropna(subset=['latitude', 'longitude'])
 
+    # Create a Folium map centered on India
+    m = folium.Map(location=[20.5937, 78.9629], zoom_start=5)
+
     if not map_data.empty:
-        st.map(map_data[['latitude', 'longitude']], zoom=4)
+        # Heatmap Layer
+        heat_data = [[row['latitude'], row['longitude']] for index, row in map_data.iterrows()]
+        HeatMap(heat_data).add_to(m)
+
+        # Marker Layer
+        for index, row in map_data.iterrows():
+            # Prepare the image for the popup
+            image = db.get_image(conn, row['id'])
+            encoded = base64.b64encode(image).decode()
+            html = f'<img src="data:image/png;base64,{encoded}" width="150"><br><b>{row["dialect_word"]}</b>'
+            
+            iframe = folium.IFrame(html, width=200, height=200)
+            popup = folium.Popup(iframe, max_width=2650)
+            
+            folium.Marker(
+                location=[row['latitude'], row['longitude']],
+                popup=popup,
+                tooltip=f"{row['dialect_word']} ({row['location_text']})"
+            ).add_to(m)
+        
+        # Add layer control
+        folium.LayerControl().add_to(m)
+        
+        # Render the map
+        st_folium(m, width='100%', height=500)
     else:
         st.info("No submissions with location data yet. Be the first to contribute!")
 
