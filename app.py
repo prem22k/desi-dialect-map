@@ -108,6 +108,20 @@ def main():
         st.metric("Unique Locations Mapped", f"{submissions_df['location_text'].nunique()}")
 
         st.markdown("---")
+        st.header("Export Data")
+        
+        # Convert DataFrame to CSV
+        csv = submissions_df.to_csv(index=False).encode('utf-8')
+        
+        st.download_button(
+           label="Download data as CSV",
+           data=csv,
+           file_name='dialect_map_submissions.csv',
+           mime='text/csv',
+           use_container_width=True
+        )
+
+        st.markdown("---")
         st.header("Submission of the Day")
         random_submission = get_random_submission_cached()
         if random_submission:
@@ -115,11 +129,28 @@ def main():
             st.image(get_image_cached(sub_id), caption=f"'{sub_word}' from {sub_loc}", use_container_width=True)
 
     # --- Main Page ---
+    
+    # --- Filtering ---
+    states = ["All States", "Andaman and Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chandigarh", "Chhattisgarh", "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jammu and Kashmir", "Jharkhand", "Karnataka", "Kerala", "Ladakh", "Lakshadweep", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Puducherry", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"]
+    
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        search_query = st.text_input("Search by dialect word:", placeholder="Search...")
+    with col2:
+        state_filter = st.selectbox("Filter by State:", states)
+
+    filtered_df = submissions_df
+    if search_query:
+        filtered_df = filtered_df[filtered_df['dialect_word'].str.contains(search_query, case=False)]
+    if state_filter != "All States":
+        filtered_df = filtered_df[filtered_df['location_text'].str.contains(state_filter, case=False)]
+
+
     tab1, tab2 = st.tabs(["🗺️ Interactive Map", "🖼️ Community Gallery"])
 
     with tab1:
         st.subheader("A Living Map of India's Languages")
-        map_data = submissions_df.dropna(subset=['latitude', 'longitude'])
+        map_data = filtered_df.dropna(subset=['latitude', 'longitude'])
 
         m = folium.Map(location=[20.5937, 78.9629], zoom_start=5, tiles="CartoDB positron")
 
@@ -134,31 +165,33 @@ def main():
                 encoded = base64.b64encode(image_data).decode()
                 html = f'<img src="data:image/{image_format};base64,{encoded}" width="150"><br><b>{row["dialect_word"]}</b>'
                 
-                iframe = folium.IFrame(html, width=200, height=200)
-                popup = folium.Popup(iframe, max_width=2650)
+                popup = folium.Popup(html, max_width=200)
                 
+                icon = folium.DivIcon(
+                    html=f'<div style="font-size: 24px;">📍</div>',
+                    icon_size=(30, 30),
+                    icon_anchor=(15, 30)
+                )
                 folium.Marker(
                     location=[row['latitude'], row['longitude']],
                     popup=popup,
-                    tooltip=f"{row['dialect_word']} ({row['location_text']})"
+                    tooltip=f"{row['dialect_word']} ({row['location_text']})",
+                    icon=icon
                 ).add_to(marker_cluster)
             
             folium.LayerControl().add_to(m)
-            st_folium(m, width='100%', height=600, returned_objects=[])
+            st_folium(m, width='100%', height=700, returned_objects=[])
         else:
-            st.info("No submissions with location data yet. Be the first to contribute!")
+            st.info("No submissions match your criteria. Try a different filter or be the first to contribute!")
 
     with tab2:
         st.subheader("Community Gallery")
-        if not submissions_df.empty:
-            search_query = st.text_input("Search by dialect word:")
-            filtered_df = submissions_df[submissions_df['dialect_word'].str.contains(search_query, case=False)]
-
+        if not filtered_df.empty:
             items_per_page = 12
             total_items = len(filtered_df)
             total_pages = (total_items // items_per_page) + (1 if total_items % items_per_page > 0 else 0)
             
-            page_number = st.number_input('Page', min_value=1, max_value=max(1, total_pages), value=1, step=1)
+            page_number = st.number_input('Page', min_value=1, max_value=max(1, total_pages), value=1, step=1, key="gallery_page")
             
             start_index = (page_number - 1) * items_per_page
             end_index = start_index + items_per_page
@@ -174,7 +207,7 @@ def main():
                     except (IOError, TypeError):
                         st.error("Could not display image.")
         else:
-            st.info("The gallery is empty. Upload an image to get started!")
+            st.info("The gallery is empty or no submissions match your criteria.")
 
 if __name__ == "__main__":
     main()
