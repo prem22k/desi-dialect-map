@@ -1,39 +1,42 @@
 # Desi Dialect Map 🗺️📍
 
-### A Summer of AI 2025 Project by Team "ahjin Guild"
+Welcome to the repository for the **Desi Dialect Map**! This is a personal project by **Prem Sai Kota**, designed to be a high-performance, interactive platform for documenting and celebrating the rich linguistic diversity of India.
+
+### [➡️ View the Live Demo](https://prem22k-desi-dialect-map.streamlit.app/) `(Link to be updated after deployment)`
 
 ---
 
-Welcome to the official repository for the **Desi Dialect Map**! This project is a fun, interactive Streamlit application designed to create a crowdsourced, living map of India's incredible linguistic diversity.
+## ✨ About the Project
 
-## 🎯 Our Mission
+The Desi Dialect Map is a full-stack Streamlit application that functions as a powerful "Corpus Collection Engine." It allows users to upload images of objects, scenes, or cultural items and tag them with the words used in their local dialects. This crowdsourced data is then visualized on an interactive map of India, creating a living, breathing atlas of our country's vernacular languages.
 
-Our core goal is to build an engaging "Corpus Collection Engine" disguised as a user-friendly app. By allowing users to pin their local words for common objects onto a map of India, we are ethically gathering a rich, geotagged dataset of vernacular language. This corpus of text and audio data will be invaluable for training the next generation of AI to understand and communicate in authentic Indian languages, directly contributing to the mission of **viswam.ai**.
+The mission is to ethically gather a rich, geotagged dataset of text and images to power the next generation of inclusive AI.
 
-## ✨ Key Features (MVP)
+## 🚀 Key Features
 
-* **Interactive Map:** Visualize linguistic diversity across India in real-time.
-* **Easy Contribution:** Submit words in your local dialect with just a few clicks.
-* **Audio Recording:** Optionally record the pronunciation of your word to enrich the dataset.
-* **Low-Bandwidth Friendly:** Designed to be fast and accessible for everyone.
+*   **Interactive Folium Map:** A high-performance map with custom emoji markers, interactive popups (displaying images and dialect words), and a heatmap layer to visualize submission density.
+*   **User-Generated Content:** A robust file uploader allows users to contribute their own images, which are stored in a local SQLite database.
+*   **Advanced Data Exploration:** The platform features a powerful search bar and a state-based dropdown to filter submissions on both the map and the gallery.
+*   **Performance-Optimized:** The application is built for speed, with smart caching for all database queries and geocoding lookups to ensure a snappy user experience.
+*   **Dynamic UI:** The app features a "Submission of the Day" section to keep the content fresh and engaging, along with a dashboard of project statistics.
+*   **Data Export:** All collected data can be easily exported to a CSV file for further analysis.
 
-## 🚀 Project Roadmap
+## 💻 Tech Stack
 
-* **Phase 0 (Current):** Project Planning & Submission
-* **Week 1:** Rapid Development of the Minimum Viable Product (MVP)
-* **Week 2:** Beta Testing & Iteration Cycle
-* **Weeks 3-4:** Full-scale User Acquisition & Corpus Growth Campaign
+This project was built with a modern, performance-oriented stack:
 
-For a comprehensive breakdown of our project plan, technical architecture, and team roles, please see our detailed **[REPORT.md](REPORT.md)**.
+*   **Frontend:** Streamlit
+*   **Backend:** Python, SQLite
+*   **Mapping:** Folium, Geopy
+*   **Data Handling:** Pandas
+*   **Deployment:** Streamlit Community Cloud (to be deployed)
 
-## 🤝 How to Contribute
+## 🤝 Contributing
 
-We are excited to build this project with the community!
-
-* **Users:** The best way to contribute is to use the application once it's live and share it with your friends and family!
-* **Developers:** Please read our **[CONTRIBUTING.md](CONTRIBUTING.md)** file for guidelines on how to contribute to the codebase. Feel free to check out our open issues.
+While this is a personal project, I am open to feedback and contributions from the community. If you have an idea for a new feature or find a bug, please feel free to open an issue.
 
 ---
 
-Thank you for your interest in our project!
-**- Team ahjin Guild**
+Thank you for checking out my project!
+
+**- Prem Sai Kota**
