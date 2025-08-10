@@ -50,6 +50,12 @@ def get_image(conn, submission_id):
     row = cur.fetchone()
     return row[0] if row else None
 
+def get_random_submission(conn):
+    """Get a random submission from the database."""
+    cur = conn.cursor()
+    cur.execute("SELECT id, dialect_word, location_text FROM submissions ORDER BY RANDOM() LIMIT 1")
+    return cur.fetchone()
+
 def initialize_database():
     """Initialize the database and create the table"""
     conn = create_connection()
