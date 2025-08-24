@@ -82,7 +82,8 @@ def main():
     conn = get_db_connection()
 
     st.title("Desi Dialect Map 🗺️📍")
-    st.markdown("A personal project by **Prem Sai Kota**")
+    st.markdown("A collaborative project by **Team ahjin Guild**")
+    st.markdown("*Sreenidhi Institute of Science and Technology*")
 
     # --- Sidebar ---
     with st.sidebar:

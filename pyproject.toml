@@ -9,7 +9,7 @@ description = "A Streamlit application for mapping India's dialect diversity thr
 readme = "README.md"
 license = {text = "AGPL-3.0"}
 authors = [
-    {name = "Prem Sai Kota", email = "prem@example.com"}
+    {name = "ahjin Guild Team", email = "ahjin.guild@snist.edu.in"}
 ]
 keywords = ["dialect", "map", "india", "streamlit", "linguistics", "crowdsourcing"]
 classifiers = [
