@@ -1,0 +1,57 @@
+{
+    "python.defaultInterpreterPath": "./venv/bin/python",
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": false,
+    "python.linting.flake8Enabled": false,
+    "python.linting.ruffEnabled": true,
+    "python.linting.ruffPath": "./venv/bin/ruff",
+    "python.formatting.provider": "black",
+    "python.formatting.blackPath": "./venv/bin/black",
+    "python.sortImports.path": "./venv/bin/ruff",
+    "python.sortImports.args": ["--select", "I"],
+    "python.testing.pytestEnabled": true,
+    "python.testing.pytestPath": "./venv/bin/pytest",
+    "python.testing.pytestArgs": [
+        "tests"
+    ],
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit",
+        "source.fixAll": "explicit"
+    },
+    "files.exclude": {
+        "**/__pycache__": true,
+        "**/*.pyc": true,
+        "**/.pytest_cache": true,
+        "**/.mypy_cache": true,
+        "**/venv": true,
+        "**/.venv": true,
+        "**/uploaded_images": true,
+        "**/*.db": true
+    },
+    "search.exclude": {
+        "**/venv": true,
+        "**/.venv": true,
+        "**/__pycache__": true,
+        "**/.pytest_cache": true,
+        "**/.mypy_cache": true,
+        "**/uploaded_images": true,
+        "**/*.db": true
+    },
+    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.autoSearchPaths": true,
+    "python.analysis.diagnosticMode": "workspace",
+    "python.analysis.stubPath": "./typings",
+    "files.associations": {
+        "*.toml": "toml",
+        "*.md": "markdown",
+        "*.yml": "yaml",
+        "*.yaml": "yaml"
+    },
+    "emmet.includeLanguages": {
+        "markdown": "html"
+    },
+    "markdown.preview.breaks": true,
+    "markdown.preview.linkify": true
+}
