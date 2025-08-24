@@ -14,22 +14,41 @@ The mission is to ethically gather a rich, geotagged dataset of text and images 
 
 ## 🚀 Key Features
 
-*   **Interactive Folium Map:** A high-performance map with custom emoji markers, interactive popups (displaying images and dialect words), and a heatmap layer to visualize submission density.
-*   **User-Generated Content:** A robust file uploader allows users to contribute their own images, which are stored in a local SQLite database.
-*   **Advanced Data Exploration:** The platform features a powerful search bar and a state-based dropdown to filter submissions on both the map and the gallery.
-*   **Performance-Optimized:** The application is built for speed, with smart caching for all database queries and geocoding lookups to ensure a snappy user experience.
-*   **Dynamic UI:** The app features a "Submission of the Day" section to keep the content fresh and engaging, along with a dashboard of project statistics.
-*   **Data Export:** All collected data can be easily exported to a CSV file for further analysis.
+- **Interactive Folium Map:** A high-performance map with custom emoji markers, interactive popups (displaying images and dialect words), and a heatmap layer to visualize submission density.
+- **User-Generated Content:** A robust file uploader allows users to contribute their own images, which are stored locally and metadata in SQLite.
+- **Advanced Data Exploration:** The platform features a powerful search bar and a state-based dropdown to filter submissions on both the map and the gallery.
+- **Performance-Optimized:** The application is built for speed, with smart caching for all database queries and geocoding lookups to ensure a snappy user experience.
+- **Dynamic UI:** The app features a "Submission of the Day" section to keep the content fresh and engaging, along with a dashboard of project statistics.
+- **Data Export:** All collected data can be easily exported to a CSV file for further analysis.
 
 ## 💻 Tech Stack
 
 This project was built with a modern, performance-oriented stack:
 
-*   **Frontend:** Streamlit
-*   **Backend:** Python, SQLite
-*   **Mapping:** Folium, Geopy
-*   **Data Handling:** Pandas
-*   **Deployment:** Streamlit Community Cloud (to be deployed)
+- **Frontend:** Streamlit
+- **Backend:** Python, SQLite + Local File Storage
+- **Mapping:** Folium, Geopy
+- **Data Handling:** Pandas
+- **Deployment:** Streamlit Community Cloud
+
+## 🗂️ Local Storage Setup
+
+This project uses **100% local storage** - no cloud services needed!
+
+### Prerequisites
+
+- Python 3.7+ with write permissions
+- No external accounts or API keys required
+
+### Quick Start
+
+1. Install dependencies: `pip install -r requirements.txt`
+2. Test local storage: `python test_local_storage.py`
+3. Run the app: `streamlit run app.py`
+
+### Deployment
+
+For detailed deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md)
 
 ## 🤝 Contributing
 
