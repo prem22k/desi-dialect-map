@@ -122,9 +122,14 @@ def main():
         st.header("Project Stats")
         submissions_df = get_all_submissions_cached()
         st.metric("Total Contributions", f"{len(submissions_df)}")
-        st.metric(
-            "Unique Locations Mapped", f"{submissions_df['location_text'].nunique()}"
-        )
+        
+        # Check if location_text column exists before accessing it
+        if 'location_text' in submissions_df.columns and len(submissions_df) > 0:
+            st.metric(
+                "Unique Locations Mapped", f"{submissions_df['location_text'].nunique()}"
+            )
+        else:
+            st.metric("Unique Locations Mapped", "0")
 
         st.markdown("---")
         st.header("Export Data")
@@ -201,11 +206,11 @@ def main():
         state_filter = st.selectbox("Filter by State:", states)
 
     filtered_df = submissions_df
-    if search_query:
+    if search_query and 'dialect_word' in filtered_df.columns:
         filtered_df = filtered_df[
             filtered_df["dialect_word"].str.contains(search_query, case=False)
         ]
-    if state_filter != "All States":
+    if state_filter != "All States" and 'location_text' in filtered_df.columns:
         filtered_df = filtered_df[
             filtered_df["location_text"].str.contains(state_filter, case=False)
         ]
@@ -242,10 +247,13 @@ def main():
                     icon_size=(30, 30),
                     icon_anchor=(15, 30),
                 )
+                
+                # Handle missing location_text gracefully
+                location_text = row.get("location_text", "Unknown Location")
                 folium.Marker(
                     location=[row["latitude"], row["longitude"]],
                     popup=popup,
-                    tooltip=f"{row['dialect_word']} ({row['location_text']})",
+                    tooltip=f"{row['dialect_word']} ({location_text})",
                     icon=icon,
                 ).add_to(marker_cluster)
 

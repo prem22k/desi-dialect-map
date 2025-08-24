@@ -247,11 +247,50 @@ def initialize_database():
     conn = create_connection()
     if conn is not None:
         create_table(conn)
+        migrate_database(conn)  # Add migration call
         conn.close()
         return True
     else:
         print("Error! cannot create the database connection.")
         return False
+
+
+def migrate_database(conn):
+    """Migrate database schema to latest version"""
+    try:
+        c = conn.cursor()
+        
+        # Check if image_path column exists
+        c.execute("PRAGMA table_info(submissions)")
+        columns = [column[1] for column in c.fetchall()]
+        
+        # Add missing columns if they don't exist
+        if 'image_path' not in columns:
+            c.execute("ALTER TABLE submissions ADD COLUMN image_path TEXT")
+            print("Added image_path column to submissions table")
+            
+        if 'user_id' not in columns:
+            c.execute("ALTER TABLE submissions ADD COLUMN user_id TEXT")
+            print("Added user_id column to submissions table")
+            
+        if 'is_public' not in columns:
+            c.execute("ALTER TABLE submissions ADD COLUMN is_public BOOLEAN DEFAULT 1")
+            print("Added is_public column to submissions table")
+            
+        if 'is_verified' not in columns:
+            c.execute("ALTER TABLE submissions ADD COLUMN is_verified BOOLEAN DEFAULT 0")
+            print("Added is_verified column to submissions table")
+            
+        if 'timestamp' not in columns:
+            c.execute("ALTER TABLE submissions ADD COLUMN timestamp DATETIME DEFAULT CURRENT_TIMESTAMP")
+            print("Added timestamp column to submissions table")
+        
+        conn.commit()
+        print("Database migration completed successfully")
+        
+    except Exception as e:
+        print(f"Migration error: {e}")
+        conn.rollback()
 
 
 def toggle_submission_privacy(conn, submission_id, user_id):
