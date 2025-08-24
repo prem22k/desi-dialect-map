@@ -2,7 +2,7 @@
 
 Welcome to the repository for the **Desi Dialect Map**! This is a collaborative project by the **ahjin Guild** team from Sreenidhi Institute of Science and Technology, designed to be a high-performance, interactive platform for documenting and celebrating the rich linguistic diversity of India.
 
-### [➡️ View the Live Demo](https://desi-dialect-map.streamlit.app/) `(Link to be updated after deployment)`
+### [➡️ View the Live Demo](https://desi-dialect-map.streamlit.app/)
 
 ---
 
