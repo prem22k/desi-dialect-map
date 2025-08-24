@@ -62,9 +62,14 @@ def get_random_submission_cached():
 def get_image_format(image_data):
     """Determine the image format from its raw data."""
     try:
+        if not image_data:
+            return "png"
         image = Image.open(io.BytesIO(image_data))
-        return image.format.lower()
-    except (IOError, TypeError):
+        if image.format:
+            return image.format.lower()
+        else:
+            return "png"  # Default to png if format is not identifiable
+    except (IOError, TypeError, AttributeError):
         return "png"  # Default to png if format is not identifiable
 
 
@@ -150,11 +155,20 @@ def main():
         random_submission = get_random_submission_cached()
         if random_submission:
             sub_id, sub_word, sub_loc = random_submission
-            st.image(
-                get_image_cached(sub_id),
-                caption=f"'{sub_word}' from {sub_loc}",
-                use_container_width=True,
-            )
+            image_data = get_image_cached(sub_id)
+            if image_data:
+                try:
+                    st.image(
+                        image_data,
+                        caption=f"'{sub_word}' from {sub_loc}",
+                        use_container_width=True,
+                    )
+                except Exception as e:
+                    st.info(f"'{sub_word}' from {sub_loc} (image unavailable)")
+            else:
+                st.info(f"'{sub_word}' from {sub_loc} (image unavailable)")
+        else:
+            st.info("No submissions yet. Be the first to contribute!")
 
     # --- Main Page ---
 
@@ -236,9 +250,15 @@ def main():
             marker_cluster = MarkerCluster(name="Submissions").add_to(m)
             for _, row in map_data.iterrows():
                 image_data = get_image_cached(row["id"])
-                image_format = get_image_format(image_data)
-                encoded = base64.b64encode(image_data).decode()
-                html = f'<img src="data:image/{image_format};base64,{encoded}" width="150"><br><b>{row["dialect_word"]}</b>'
+                if image_data:
+                    try:
+                        image_format = get_image_format(image_data)
+                        encoded = base64.b64encode(image_data).decode()
+                        html = f'<img src="data:image/{image_format};base64,{encoded}" width="150"><br><b>{row["dialect_word"]}</b>'
+                    except Exception:
+                        html = f'<b>{row["dialect_word"]}</b><br><i>Image unavailable</i>'
+                else:
+                    html = f'<b>{row["dialect_word"]}</b><br><i>Image unavailable</i>'
 
                 popup = folium.Popup(html, max_width=200)
 
@@ -290,15 +310,19 @@ def main():
             cols = st.columns(4)
             for i, row in paginated_df.iterrows():
                 with cols[i % 4]:
-                    try:
-                        image = Image.open(io.BytesIO(get_image_cached(row["id"])))
-                        st.image(
-                            image,
-                            caption=f"'{row['dialect_word']}' from {row['location_text']}",
-                            use_container_width=True,
-                        )
-                    except (IOError, TypeError):
-                        st.error("Could not display image.")
+                    image_data = get_image_cached(row["id"])
+                    if image_data:
+                        try:
+                            image = Image.open(io.BytesIO(image_data))
+                            st.image(
+                                image,
+                                caption=f"'{row['dialect_word']}' from {row.get('location_text', 'Unknown Location')}",
+                                use_container_width=True,
+                            )
+                        except (IOError, TypeError, AttributeError):
+                            st.info(f"'{row['dialect_word']}' from {row.get('location_text', 'Unknown Location')} (image unavailable)")
+                    else:
+                        st.info(f"'{row['dialect_word']}' from {row.get('location_text', 'Unknown Location')} (image unavailable)")
         else:
             st.info("The gallery is empty or no submissions match your criteria.")
 
