@@ -302,7 +302,11 @@ def get_all_records_cached() -> List[Dict[str, Any]]:
     if not api_auth.is_authenticated():
         return []
     
-    return api_records.get_records(limit=1000)
+    try:
+        return api_records.get_records(limit=1000)
+    except Exception as e:
+        st.error(f"Failed to fetch all records: {str(e)}")
+        return []
 
 
 def get_records_for_map() -> List[Dict[str, Any]]:
@@ -310,25 +314,29 @@ def get_records_for_map() -> List[Dict[str, Any]]:
     if not api_auth.is_authenticated():
         return []
     
-    records = api_records.get_records(media_type="image", limit=1000)
-    
-    # Transform records to match our app's expected format
-    transformed_records = []
-    for record in records:
-        if record.get("location") and record.get("location").get("latitude") and record.get("location").get("longitude"):
-            transformed_records.append({
-                "id": record.get("uid"),
-                "dialect_word": record.get("title"),
-                "location_text": record.get("description", ""),
-                "latitude": record.get("location", {}).get("latitude"),
-                "longitude": record.get("location", {}).get("longitude"),
-                "image_path": record.get("file_url"),
-                "is_verified": record.get("reviewed", False),
-                "user_id": record.get("user_id"),
-                "created_at": record.get("created_at")
-            })
-    
-    return transformed_records
+    try:
+        records = api_records.get_records(media_type="image", limit=1000)
+        
+        # Transform records to match our app's expected format
+        transformed_records = []
+        for record in records:
+            if record.get("location") and record.get("location").get("latitude") and record.get("location").get("longitude"):
+                transformed_records.append({
+                    "id": record.get("uid"),
+                    "dialect_word": record.get("title"),
+                    "location_text": record.get("description", ""),
+                    "latitude": record.get("location", {}).get("latitude"),
+                    "longitude": record.get("location", {}).get("longitude"),
+                    "image_path": record.get("file_url"),
+                    "is_verified": record.get("reviewed", False),
+                    "user_id": record.get("user_id"),
+                    "created_at": record.get("created_at")
+                })
+        
+        return transformed_records
+    except Exception as e:
+        st.error(f"Failed to fetch records: {str(e)}")
+        return []
 
 
 def get_random_record() -> Optional[Dict[str, Any]]:
@@ -336,16 +344,20 @@ def get_random_record() -> Optional[Dict[str, Any]]:
     if not api_auth.is_authenticated():
         return None
     
-    records = api_records.get_records(media_type="image", limit=100)
-    if records:
-        import random
-        record = random.choice(records)
-        return {
-            "id": record.get("uid"),
-            "dialect_word": record.get("title"),
-            "location_text": record.get("description", "")
-        }
-    return None
+    try:
+        records = api_records.get_records(media_type="image", limit=100)
+        if records:
+            import random
+            record = random.choice(records)
+            return {
+                "id": record.get("uid"),
+                "dialect_word": record.get("title"),
+                "location_text": record.get("description", "")
+            }
+        return None
+    except Exception as e:
+        st.error(f"Failed to fetch random record: {str(e)}")
+        return None
 
 
 def add_record_to_api(dialect_word: str, location_text: str, image_data: bytes,
@@ -386,13 +398,21 @@ def get_image_from_api(record_id: str) -> Optional[bytes]:
     if not api_auth.is_authenticated():
         return None
     
-    record = api_records.get_record(record_id)
-    if record and record.get("file_url"):
-        try:
-            response = requests.get(record["file_url"])
-            response.raise_for_status()
-            return response.content
-        except Exception as e:
-            st.error(f"Failed to fetch image: {str(e)}")
-            return None
-    return None
+    # Handle demo data
+    if record_id.startswith("demo_"):
+        return None  # Demo records don't have images
+    
+    try:
+        record = api_records.get_record(record_id)
+        if record and record.get("file_url"):
+            try:
+                response = requests.get(record["file_url"])
+                response.raise_for_status()
+                return response.content
+            except Exception as e:
+                st.error(f"Failed to fetch image: {str(e)}")
+                return None
+        return None
+    except Exception as e:
+        st.error(f"Failed to get record: {str(e)}")
+        return None

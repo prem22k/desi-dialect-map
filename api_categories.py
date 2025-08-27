@@ -105,7 +105,11 @@ def get_categories_cached() -> List[Dict[str, Any]]:
     if not api_auth.is_authenticated():
         return []
     
-    return api_categories.get_categories()
+    try:
+        return api_categories.get_categories()
+    except Exception as e:
+        st.error(f"Failed to fetch categories: {str(e)}")
+        return []
 
 
 def get_published_categories() -> List[Dict[str, Any]]:
@@ -182,20 +186,29 @@ def format_category_display(category: Dict[str, Any]) -> str:
 
 def get_category_statistics() -> Dict[str, Any]:
     """Get statistics about categories"""
-    categories = get_categories_cached()
-    
-    stats = {
-        "total_categories": len(categories),
-        "published_categories": len([c for c in categories if c.get("published", False)]),
-        "unpublished_categories": len([c for c in categories if not c.get("published", False)]),
-        "categories_by_rank": {}
-    }
-    
-    # Group by rank
-    for category in categories:
-        rank = category.get("rank", 0)
-        if rank not in stats["categories_by_rank"]:
-            stats["categories_by_rank"][rank] = 0
-        stats["categories_by_rank"][rank] += 1
-    
-    return stats
+    try:
+        categories = get_categories_cached()
+        
+        stats = {
+            "total_categories": len(categories),
+            "published_categories": len([c for c in categories if c.get("published", False)]),
+            "unpublished_categories": len([c for c in categories if not c.get("published", False)]),
+            "categories_by_rank": {}
+        }
+        
+        # Group by rank
+        for category in categories:
+            rank = category.get("rank", 0)
+            if rank not in stats["categories_by_rank"]:
+                stats["categories_by_rank"][rank] = 0
+            stats["categories_by_rank"][rank] += 1
+        
+        return stats
+    except Exception as e:
+        st.error(f"Failed to get category statistics: {str(e)}")
+        return {
+            "total_categories": 0,
+            "published_categories": 0,
+            "unpublished_categories": 0,
+            "categories_by_rank": {}
+        }
