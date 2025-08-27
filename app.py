@@ -96,6 +96,10 @@ def main():
 
     # --- Sidebar ---
     with st.sidebar:
+        # Show API Authentication
+        api_auth_ui.show_api_auth_sidebar()
+        
+        st.markdown("---")
         st.header("Contribute Your Dialect!")
         st.markdown("Help us build a living map of India's languages.")
 
