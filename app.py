@@ -10,6 +10,7 @@ from streamlit_folium import st_folium
 from folium.plugins import HeatMap, MarkerCluster
 import base64
 import random
+import api_auth_ui
 
 
 # --- Caching ---
@@ -89,6 +90,9 @@ def main():
     st.title("Desi Dialect Map 🗺️📍")
     st.markdown("A collaborative project by **Team ahjin Guild**")
     st.markdown("*Sreenidhi Institute of Science and Technology*")
+    
+    # API Integration Notice
+    st.info("🚀 **NEW: Indic Corpus Collections API Integration Available!** Use the 'API Mode' tab to connect to the official corpus database.")
 
     # --- Sidebar ---
     with st.sidebar:
@@ -229,7 +233,7 @@ def main():
             filtered_df["location_text"].str.contains(state_filter, case=False)
         ]
 
-    tab1, tab2 = st.tabs(["🗺️ Interactive Map", "🖼️ Community Gallery"])
+    tab1, tab2, tab3 = st.tabs(["🗺️ Interactive Map", "🖼️ Community Gallery", "🚀 API Mode"])
 
     with tab1:
         st.subheader("A Living Map of India's Languages")
@@ -325,6 +329,16 @@ def main():
                         st.info(f"'{row['dialect_word']}' from {row.get('location_text', 'Unknown Location')} (image unavailable)")
         else:
             st.info("The gallery is empty or no submissions match your criteria.")
+
+    with tab3:
+        st.subheader("🚀 Indic Corpus Collections API")
+        st.markdown("Connect to the official Indic Corpus Collections API to:")
+        st.markdown("• 📤 Submit dialect records to the centralized database")
+        st.markdown("• 🗺️ Browse records from across India")
+        st.markdown("• 📊 View analytics and user contributions")
+        st.markdown("• 🔍 Search nearby records and filter by categories")
+        
+        api_auth_ui.main_api_interface()
 
 
 if __name__ == "__main__":
