@@ -7,6 +7,7 @@ from typing import Optional, Dict, Any, List
 from PIL import Image
 import base64
 from api_auth import api_auth
+from api_categories import get_default_category
 
 # API Configuration
 API_BASE_URL = "https://api.corpus.swecha.org"
@@ -348,16 +349,23 @@ def get_random_record() -> Optional[Dict[str, Any]]:
 
 
 def add_record_to_api(dialect_word: str, location_text: str, image_data: bytes,
-                     latitude: float, longitude: float) -> Optional[str]:
+                     latitude: float, longitude: float, category_id: Optional[str] = None) -> Optional[str]:
     """Add a new record to the API"""
     if not api_auth.is_authenticated():
         st.error("Please login to submit records")
         return None
     
-    # For now, use a default category and language
-    # In a full implementation, these would be configurable
-    category_id = "00000000-0000-0000-0000-000000000000"  # Default category
-    language = "hindi"  # Default language
+    # Get or create default category if none provided
+    if not category_id:
+        default_category = get_default_category()
+        if default_category:
+            category_id = default_category.get("id")
+        else:
+            st.error("No category available. Please create a category first.")
+            return None
+    
+    # Default language
+    language = "hindi"  # In a full implementation, this could be detected or selected
     
     result = api_records.upload_image_record(
         image_data=image_data,

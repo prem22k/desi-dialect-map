@@ -11,6 +11,7 @@ import base64
 import random
 import api_auth_ui
 import api_records
+import api_categories
 
 
 # --- Caching ---
@@ -84,6 +85,22 @@ def main():
         location_text = st.text_input(
             "Enter your city/town:", placeholder="e.g., Hyderabad"
         )
+        
+        # Category selection
+        if api_auth_ui.api_auth.is_authenticated():
+            category_options = api_categories.get_category_options()
+            if len(category_options) > 1:  # More than just "Select a category"
+                selected_category = st.selectbox(
+                    "Category:",
+                    options=[opt[1] for opt in category_options],
+                    format_func=lambda x: next((opt[0] for opt in category_options if opt[1] == x), "Unknown"),
+                    index=1 if len(category_options) > 1 else 0
+                )
+            else:
+                selected_category = None
+                st.info("No categories available. Records will use default category.")
+        else:
+            selected_category = None
 
         if st.button("Put my word on the map!", use_container_width=True):
             if uploaded_image and dialect_word and location_text:
@@ -96,7 +113,7 @@ def main():
 
                 if lat and lon:
                     submission_id = api_records.add_record_to_api(
-                        dialect_word, location_text, image_data, lat, lon
+                        dialect_word, location_text, image_data, lat, lon, selected_category
                     )
                     
                     if submission_id:
@@ -218,11 +235,25 @@ def main():
         "West Bengal",
     ]
 
-    col1, col2 = st.columns([3, 1])
+    col1, col2, col3 = st.columns([2, 1, 1])
     with col1:
         search_query = st.text_input("Search by dialect word:", placeholder="Search...")
     with col2:
         state_filter = st.selectbox("Filter by State:", states)
+    with col3:
+        if api_auth_ui.api_auth.is_authenticated():
+            category_options = api_categories.get_category_options()
+            if len(category_options) > 1:
+                selected_category_filter = st.selectbox(
+                    "Filter by Category:",
+                    options=[opt[1] for opt in category_options],
+                    format_func=lambda x: next((opt[0] for opt in category_options if opt[1] == x), "All Categories"),
+                    index=0
+                )
+            else:
+                selected_category_filter = None
+        else:
+            selected_category_filter = None
 
     # Get records from API
     if api_auth_ui.api_auth.is_authenticated():
@@ -241,6 +272,21 @@ def main():
             filtered_records = [
                 record for record in filtered_records
                 if state_filter.lower() in record.get('location_text', '').lower()
+            ]
+        
+        # Apply category filter
+        if selected_category_filter:
+            # Get records filtered by category from API
+            category_records = api_records.api_records.get_records(
+                category_id=selected_category_filter,
+                media_type="image",
+                limit=1000
+            )
+            # Transform category records to match our format
+            category_record_ids = {record.get("uid") for record in category_records}
+            filtered_records = [
+                record for record in filtered_records
+                if record.get('id') in category_record_ids
             ]
     else:
         filtered_records = []
@@ -374,7 +420,10 @@ def main():
                 limit=1000
             )
             
-            col1, col2, col3 = st.columns(3)
+            # Get category statistics
+            category_stats = api_categories.get_category_statistics()
+            
+            col1, col2, col3, col4 = st.columns(4)
             with col1:
                 st.metric("Your Contributions", len(user_records))
             with col2:
@@ -383,6 +432,8 @@ def main():
             with col3:
                 pending_count = len([r for r in user_records if not r.get("reviewed", False)])
                 st.metric("Pending Review", pending_count)
+            with col4:
+                st.metric("Categories", category_stats["published_categories"])
             
             # Show recent contributions
             if user_records:
@@ -397,6 +448,43 @@ def main():
                         st.write(f"**Media Type:** {record.get('media_type', 'Unknown')}")
                         if record.get('location'):
                             st.write(f"**Location:** {record['location'].get('latitude', 'N/A')}, {record['location'].get('longitude', 'N/A')}")
+            
+            # Category Management Section
+            st.markdown("---")
+            st.subheader("🏷️ Category Management")
+            
+            # Show existing categories
+            categories = api_categories.get_categories_cached()
+            if categories:
+                st.write("**Available Categories:**")
+                for category in categories:
+                    status = "✅ Published" if category.get("published") else "⏳ Draft"
+                    st.write(f"• **{api_categories.format_category_display(category)}** - {status}")
+                    if category.get("description"):
+                        st.write(f"  *{category.get('description')}*")
+            
+            # Create new category
+            with st.expander("Create New Category"):
+                new_category_name = st.text_input("Category Name (internal)", placeholder="e.g., dialect_words")
+                new_category_title = st.text_input("Category Title (display)", placeholder="e.g., Dialect Words")
+                new_category_description = st.text_area("Description", placeholder="Description of this category")
+                new_category_published = st.checkbox("Publish immediately", value=True)
+                
+                if st.button("Create Category"):
+                    if new_category_name and new_category_title:
+                        result = api_categories.api_categories.create_category(
+                            name=new_category_name,
+                            title=new_category_title,
+                            description=new_category_description,
+                            published=new_category_published
+                        )
+                        if result:
+                            st.success(f"Category '{new_category_title}' created successfully!")
+                            st.rerun()
+                        else:
+                            st.error("Failed to create category")
+                    else:
+                        st.warning("Please provide both name and title")
 
 
 if __name__ == "__main__":
