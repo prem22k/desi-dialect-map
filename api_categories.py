@@ -25,8 +25,7 @@ class CorpusAPICategories:
             headers["Authorization"] = f"Bearer {api_auth.access_token}"
         return headers
     
-    def _make_request(self, method: str, endpoint: str, data: Optional[Dict] = None, 
-                     include_auth: bool = True) -> Dict[str, Any]:
+    def _make_request(self, method: str, endpoint: str, include_auth: bool = True) -> Dict[str, Any]:
         """Make API request with error handling"""
         url = f"{self.base_url}{endpoint}"
         headers = self._get_headers(include_auth)
@@ -34,12 +33,6 @@ class CorpusAPICategories:
         try:
             if method.upper() == "GET":
                 response = self.session.get(url, headers=headers)
-            elif method.upper() == "POST":
-                response = self.session.post(url, headers=headers, json=data)
-            elif method.upper() == "PUT":
-                response = self.session.put(url, headers=headers, json=data)
-            elif method.upper() == "DELETE":
-                response = self.session.delete(url, headers=headers)
             else:
                 raise ValueError(f"Unsupported HTTP method: {method}")
             
@@ -59,41 +52,6 @@ class CorpusAPICategories:
         if isinstance(result, list):
             return result
         return []
-    
-    def get_category(self, category_id: str) -> Optional[Dict[str, Any]]:
-        """Get a specific category by ID"""
-        result = self._make_request("GET", f"/categories/{category_id}")
-        if "error" not in result:
-            return result
-        return None
-    
-    def create_category(self, name: str, title: str, description: str = "", 
-                       published: bool = False, rank: int = 0) -> Optional[Dict[str, Any]]:
-        """Create a new category"""
-        data = {
-            "name": name,
-            "title": title,
-            "description": description,
-            "published": published,
-            "rank": rank
-        }
-        
-        result = self._make_request("POST", "/categories/", data=data)
-        if "error" not in result:
-            return result
-        return None
-    
-    def update_category(self, category_id: str, **kwargs) -> Optional[Dict[str, Any]]:
-        """Update a category"""
-        result = self._make_request("PUT", f"/categories/{category_id}", data=kwargs)
-        if "error" not in result:
-            return result
-        return None
-    
-    def delete_category(self, category_id: str) -> bool:
-        """Delete a category"""
-        result = self._make_request("DELETE", f"/categories/{category_id}")
-        return "error" not in result
 
 
 # Global API categories instance
@@ -119,30 +77,19 @@ def get_published_categories() -> List[Dict[str, Any]]:
 
 
 def get_category_by_id(category_id: str) -> Optional[Dict[str, Any]]:
-    """Get a specific category by ID"""
+    """Get a specific category by ID from the cached list"""
     if not api_auth.is_authenticated():
         return None
     
-    return api_categories.get_category(category_id)
-
-
-def create_dialect_category(name: str, title: str, description: str = "") -> Optional[Dict[str, Any]]:
-    """Create a new dialect category"""
-    if not api_auth.is_authenticated():
-        st.error("Please login to create categories")
-        return None
-    
-    return api_categories.create_category(
-        name=name,
-        title=title,
-        description=description,
-        published=True,
-        rank=0
-    )
+    categories = get_categories_cached()
+    for category in categories:
+        if category.get("id") == category_id:
+            return category
+    return None
 
 
 def get_default_category() -> Optional[Dict[str, Any]]:
-    """Get or create a default category for dialect records"""
+    """Get a default category for dialect records"""
     categories = get_published_categories()
     
     # Look for a default dialect category
@@ -150,14 +97,9 @@ def get_default_category() -> Optional[Dict[str, Any]]:
         if "dialect" in category.get("name", "").lower() or "language" in category.get("name", "").lower():
             return category
     
-    # If no dialect category exists, create one
-    if api_auth.is_authenticated():
-        default_category = create_dialect_category(
-            name="dialect_words",
-            title="Dialect Words",
-            description="Words and phrases from various Indian dialects and languages"
-        )
-        return default_category
+    # If no dialect category exists, return the first available category
+    if categories:
+        return categories[0]
     
     return None
 

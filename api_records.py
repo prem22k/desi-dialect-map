@@ -7,7 +7,7 @@ from typing import Optional, Dict, Any, List
 from PIL import Image
 import base64
 from api_auth import api_auth
-from api_categories import get_default_category
+from api_categories import default_category
 
 # API Configuration
 API_BASE_URL = "https://api.corpus.swecha.org"

@@ -4,14 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "desi-dialect-map"
-version = "1.0.0"
-description = "A Streamlit application for mapping India's dialect diversity through user-generated content"
+version = "2.0.0"
+description = "A Streamlit application for mapping India's dialect diversity through API integration with Indic Corpus Collections"
 readme = "README.md"
 license = {text = "AGPL-3.0"}
 authors = [
     {name = "ahjin Guild Team", email = "ahjin.guild@snist.edu.in"}
 ]
-keywords = ["dialect", "map", "india", "streamlit", "linguistics", "crowdsourcing"]
+keywords = ["dialect", "map", "india", "streamlit", "linguistics", "crowdsourcing", "api"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Education",
@@ -35,7 +35,7 @@ dependencies = [
     "folium>=0.14.0",
     "streamlit-folium>=0.13.0",
     "Pillow>=10.0.0",
-    "python-dotenv>=1.0.0",
+    "requests>=2.31.0",
 ]
 
 [project.optional-dependencies]

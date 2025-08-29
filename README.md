@@ -10,16 +10,17 @@ Welcome to the repository for the **Desi Dialect Map**! This is a collaborative 
 
 The Desi Dialect Map is a full-stack Streamlit application that functions as a powerful "Corpus Collection Engine." It allows users to upload images of objects, scenes, or cultural items and tag them with the words used in their local dialects. This crowdsourced data is then visualized on an interactive map of India, creating a living, breathing atlas of our country's vernacular languages.
 
-The mission is to ethically gather a rich, geotagged dataset of text and images to power the next generation of inclusive AI.
+The mission is to ethically gather a rich, geotagged dataset of text and images to power the next generation of inclusive AI through integration with the Indic Corpus Collections API.
 
 ## 🚀 Key Features
 
 - **Interactive Folium Map:** A high-performance map with custom emoji markers, interactive popups (displaying images and dialect words), and a heatmap layer to visualize submission density.
-- **User-Generated Content:** A robust file uploader allows users to contribute their own images, which are stored locally and metadata in SQLite.
-- **Advanced Data Exploration:** The platform features a powerful search bar and a state-based dropdown to filter submissions on both the map and the gallery.
-- **Performance-Optimized:** The application is built for speed, with smart caching for all database queries and geocoding lookups to ensure a snappy user experience.
+- **API-First Architecture:** Full integration with the Indic Corpus Collections API for centralized data storage and collaboration.
+- **Advanced Data Exploration:** The platform features a powerful search bar and state-based dropdown to filter submissions on both the map and the gallery.
+- **Performance-Optimized:** The application is built for speed, with smart caching for all API queries and geocoding lookups to ensure a snappy user experience.
 - **Dynamic UI:** The app features a "Submission of the Day" section to keep the content fresh and engaging, along with a dashboard of project statistics.
 - **Data Export:** All collected data can be easily exported to a CSV file for further analysis.
+- **Category Management:** Support for predefined categories to organize submissions effectively.
 
 ## 👥 Team ahjin Guild
 
@@ -35,34 +36,38 @@ Our team brings together diverse expertise to create this innovative platform:
 
 ## 💻 Tech Stack
 
-This project was built with a modern, performance-oriented stack:
+This project was built with a modern, API-first stack:
 
 - **Frontend:** Streamlit
-- **Backend:** Python, SQLite + Local File Storage
+- **Backend:** Python, Indic Corpus Collections API
 - **Mapping:** Folium, Geopy
 - **Data Handling:** Pandas
 - **Deployment:** Streamlit Community Cloud
 - **Development:** VSCode with team-standardized configuration
 - **Version Control:** GitLab with comprehensive CI/CD
 
-## 🗂️ Local Storage Setup
+## 🗂️ API Integration Setup
 
-This project uses **100% local storage** - no cloud services needed!
+This project uses **100% API-based storage** - no local database required!
 
 ### Prerequisites
 
-- Python 3.7+ with write permissions
-- No external accounts or API keys required
+- Python 3.7+ with internet connectivity
+- Access to Indic Corpus Collections API
 
 ### Quick Start
 
 1. Install dependencies: `pip install -r requirements.txt`
-2. Test local storage: `python test_local_storage.py`
-3. Run the app: `streamlit run app.py`
+2. Run the app: `streamlit run app.py`
+3. Login with your API credentials to start contributing
 
-### Deployment
+### API Authentication
 
-For detailed deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md)
+The application integrates with the Indic Corpus Collections API for:
+- User authentication via OTP
+- Record submission and retrieval
+- Category management
+- Data synchronization across users
 
 ## 🤝 Contributing
 

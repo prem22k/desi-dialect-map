@@ -65,7 +65,7 @@ def main():
     st.markdown("*Sreenidhi Institute of Science and Technology*")
     
     # API Integration Notice
-    st.info("🚀 **NEW: Indic Corpus Collections API Integration Available!** Use the 'API Mode' tab to connect to the official corpus database.")
+    st.info("🚀 **Indic Corpus Collections API Integration** - Connect to contribute to the official corpus database.")
     
     # Show demo mode indicator if API is not working
     if api_auth_ui.api_auth.is_authenticated():
@@ -95,10 +95,23 @@ def main():
             "Enter your city/town:", placeholder="e.g., Hyderabad"
         )
         
-        # Category selection (simplified)
+        # Category selection
         selected_category = None
         if api_auth_ui.api_auth.is_authenticated():
-            st.info("Category selection will be available when the API is fully operational.")
+            categories = api_categories.get_category_options()
+            category_names = [cat[0] for cat in categories]
+            category_ids = [cat[1] for cat in categories]
+            
+            selected_category_name = st.selectbox(
+                "Choose a category:",
+                category_names,
+                index=0
+            )
+            
+            if selected_category_name != "Select a category":
+                selected_category = category_ids[category_names.index(selected_category_name)]
+        else:
+            st.info("Please login to select categories")
 
         if st.button("Put my word on the map!", use_container_width=True):
             if uploaded_image and dialect_word and location_text:
@@ -241,7 +254,18 @@ def main():
     with col3:
         selected_category_filter = None
         if api_auth_ui.api_auth.is_authenticated():
-            st.info("Category filtering coming soon")
+            categories = api_categories.get_category_options()
+            category_names = [cat[0] for cat in categories]
+            category_ids = [cat[1] for cat in categories]
+            
+            selected_category_filter_name = st.selectbox(
+                "Filter by Category:",
+                ["All Categories"] + category_names[1:],  # Skip "Select a category"
+                index=0
+            )
+            
+            if selected_category_filter_name != "All Categories":
+                selected_category_filter = category_ids[category_names.index(selected_category_filter_name)]
 
     # Get records from API
     if api_auth_ui.api_auth.is_authenticated():
@@ -291,10 +315,10 @@ def main():
                 if state_filter.lower() in record.get('location_text', '').lower()
             ]
         
-        # Apply category filter (simplified)
+        # Apply category filter
         if selected_category_filter:
+            # Note: Category filtering would need to be implemented based on API response structure
             st.info(f"Category filtering: {selected_category_filter}")
-            # For now, just show a message - category filtering can be enhanced later
     else:
         filtered_records = []
 
@@ -479,10 +503,20 @@ def main():
                         if record.get('location'):
                             st.write(f"**Location:** {record['location'].get('latitude', 'N/A')}, {record['location'].get('longitude', 'N/A')}")
             
-            # Simple Category Info
+            # Category Information
             st.markdown("---")
-            st.subheader("🏷️ Categories")
-            st.info("Category management features are available when the API is fully operational.")
+            st.subheader("🏷️ Available Categories")
+            
+            categories = api_categories.get_published_categories()
+            if categories:
+                for category in categories:
+                    with st.expander(f"{category.get('title', 'Unknown')} - {category.get('description', 'No description')}"):
+                        st.write(f"**ID:** {category.get('id', 'N/A')}")
+                        st.write(f"**Name:** {category.get('name', 'N/A')}")
+                        st.write(f"**Published:** {'✅ Yes' if category.get('published') else '❌ No'}")
+                        st.write(f"**Rank:** {category.get('rank', 0)}")
+            else:
+                st.info("No categories available")
 
 
 if __name__ == "__main__":
