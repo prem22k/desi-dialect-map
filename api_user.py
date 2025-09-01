@@ -16,7 +16,7 @@ class UserAPI:
         if not access_token:
             return {"error": "No access token provided"}
             
-        url = f"{self.base_url}/auth/me"
+        url = f"{self.base_url}/api/v1/auth/me"
         headers = {
             "accept": "application/json",
             "Authorization": f"Bearer {access_token}"
