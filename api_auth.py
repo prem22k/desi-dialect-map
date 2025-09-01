@@ -82,16 +82,19 @@ class CorpusAPIAuth:
     
     def login_with_password(self, phone: str, password: str) -> Dict[str, Any]:
         """Login with phone and password"""
+        import streamlit as st
+        
         data = {"phone": phone, "password": password}
+        st.write(f"🔍 DEBUG: Login request data: {data}")
+        
         result = self._make_request("POST", "/auth/login", data, include_auth=False)
+        st.write(f"🔍 DEBUG: Login response: {result}")
         
         if "access_token" in result:
             self.access_token = result["access_token"]
-            self.user_info = {
-                "user_id": result.get("user_id"),
-                "phone_number": result.get("phone"),
-                "roles": result.get("roles", [])
-            }
+            # Store the complete user info from login response
+            self.user_info = result
+            st.write(f"🔍 DEBUG: Stored access_token and user_info")
         
         return result
     
