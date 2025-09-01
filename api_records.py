@@ -68,7 +68,7 @@ class CorpusAPIRecords:
     
     def get_records(self, category_id: Optional[str] = None, user_id: Optional[str] = None,
                    media_type: Optional[str] = None, skip: int = 0, limit: int = 100) -> List[Dict[str, Any]]:
-        """Get all records with optional filtering and pagination"""
+        """Get all records with optional filtering and pagination using Bearer token"""
         params = {
             "skip": skip,
             "limit": limit
@@ -80,7 +80,7 @@ class CorpusAPIRecords:
         if media_type:
             params["media_type"] = media_type
         
-        result = self._make_request("GET", "/records/", params=params)
+        result = self._make_request("GET", "/records/", params=params, include_auth=True)
         if isinstance(result, list):
             return result
         return []
@@ -139,10 +139,22 @@ class CorpusAPIRecords:
         result = self._make_request("DELETE", f"/records/{record_id}")
         return "error" not in result
     
-    def search_nearby(self, latitude: float, longitude: float, distance_meters: int = 5000,
+    def search_nearby(self, latitude: float, longitude: float, distance_meters: float,
                      category_id: Optional[str] = None, media_type: Optional[str] = None,
                      skip: int = 0, limit: int = 100) -> List[Dict[str, Any]]:
-        """Search for records within a specified distance of a point"""
+        """Search for records within a specified distance of a point using Bearer token"""
+        # Validate parameters according to API spec
+        if not (-90 <= latitude <= 90):
+            raise ValueError("Latitude must be between -90 and 90")
+        if not (-180 <= longitude <= 180):
+            raise ValueError("Longitude must be between -180 and 180")
+        if not (0 < distance_meters <= 50000):
+            raise ValueError("Distance must be between 0 and 50000 meters")
+        if not (0 <= skip):
+            raise ValueError("Skip must be >= 0")
+        if not (1 <= limit <= 1000):
+            raise ValueError("Limit must be between 1 and 1000")
+        
         params = {
             "latitude": latitude,
             "longitude": longitude,
@@ -155,7 +167,7 @@ class CorpusAPIRecords:
         if media_type:
             params["media_type"] = media_type
         
-        result = self._make_request("GET", "/records/search/nearby", params=params)
+        result = self._make_request("GET", "/records/search/nearby", params=params, include_auth=True)
         if isinstance(result, list):
             return result
         return []
@@ -163,7 +175,21 @@ class CorpusAPIRecords:
     def search_bbox(self, min_lat: float, min_lng: float, max_lat: float, max_lng: float,
                    category_id: Optional[str] = None, media_type: Optional[str] = None,
                    skip: int = 0, limit: int = 100) -> List[Dict[str, Any]]:
-        """Search for records within a bounding box"""
+        """Search for records within a bounding box using Bearer token"""
+        # Validate parameters according to API spec
+        if not (-90 <= min_lat <= 90) or not (-90 <= max_lat <= 90):
+            raise ValueError("Latitude values must be between -90 and 90")
+        if not (-180 <= min_lng <= 180) or not (-180 <= max_lng <= 180):
+            raise ValueError("Longitude values must be between -180 and 180")
+        if min_lat >= max_lat:
+            raise ValueError("min_lat must be less than max_lat")
+        if min_lng >= max_lng:
+            raise ValueError("min_lng must be less than max_lng")
+        if not (0 <= skip):
+            raise ValueError("Skip must be >= 0")
+        if not (1 <= limit <= 1000):
+            raise ValueError("Limit must be between 1 and 1000")
+        
         params = {
             "min_lat": min_lat,
             "min_lng": min_lng,
@@ -177,25 +203,37 @@ class CorpusAPIRecords:
         if media_type:
             params["media_type"] = media_type
         
-        result = self._make_request("GET", "/records/search/bbox", params=params)
+        result = self._make_request("GET", "/records/search/bbox", params=params, include_auth=True)
         if isinstance(result, list):
             return result
         return []
     
     def get_records_with_distance(self, latitude: float, longitude: float,
-                                max_distance_meters: Optional[int] = None,
+                                max_distance_meters: Optional[float] = None,
                                 skip: int = 0, limit: int = 50) -> List[Dict[str, Any]]:
-        """Get records with calculated distances from a reference point"""
+        """Get records with calculated distances from a reference point using Bearer token"""
+        # Validate parameters according to API spec
+        if not (-90 <= latitude <= 90):
+            raise ValueError("Latitude must be between -90 and 90")
+        if not (-180 <= longitude <= 180):
+            raise ValueError("Longitude must be between -180 and 180")
+        if max_distance_meters is not None and not (0 < max_distance_meters <= 100000):
+            raise ValueError("Max distance must be between 0 and 100000 meters")
+        if not (0 <= skip):
+            raise ValueError("Skip must be >= 0")
+        if not (1 <= limit <= 500):
+            raise ValueError("Limit must be between 1 and 500")
+        
         params = {
             "latitude": latitude,
             "longitude": longitude,
             "skip": skip,
             "limit": limit
         }
-        if max_distance_meters:
+        if max_distance_meters is not None:
             params["max_distance_meters"] = max_distance_meters
         
-        result = self._make_request("GET", "/records/search/distance", params=params)
+        result = self._make_request("GET", "/records/search/distance", params=params, include_auth=True)
         if isinstance(result, list):
             return result
         return []
@@ -352,27 +390,23 @@ def get_all_records_cached() -> List[Dict[str, Any]]:
 
 
 def get_records_for_map() -> List[Dict[str, Any]]:
-    """Get records suitable for map display"""
+    """Get records suitable for map display with new API response structure"""
     if not api_auth.is_authenticated():
         return []
     
     try:
         records = api_records.get_records(media_type="image", limit=1000)
         
-        # Transform records to match our app's expected format
+        # Transform records to match our app's expected format using new API structure
         transformed_records = []
         for record in records:
-            # Handle both nested location object and direct lat/lng fields
+            # New API structure has location as nested object
             latitude = None
             longitude = None
             
             if record.get("location"):
                 latitude = record["location"].get("latitude")
                 longitude = record["location"].get("longitude")
-            else:
-                # Check for direct latitude/longitude fields
-                latitude = record.get("latitude")
-                longitude = record.get("longitude")
             
             if latitude and longitude:
                 transformed_records.append({
@@ -385,10 +419,17 @@ def get_records_for_map() -> List[Dict[str, Any]]:
                     "is_verified": record.get("reviewed", False),
                     "user_id": record.get("user_id"),
                     "created_at": record.get("created_at"),
+                    "updated_at": record.get("updated_at"),
                     "language": record.get("language"),
                     "media_type": record.get("media_type"),
                     "release_rights": record.get("release_rights"),
-                    "status": record.get("status")
+                    "status": record.get("status"),
+                    "file_name": record.get("file_name"),
+                    "file_size": record.get("file_size"),
+                    "reviewed_by": record.get("reviewed_by"),
+                    "reviewed_at": record.get("reviewed_at"),
+                    "duration_seconds": record.get("duration_seconds"),
+                    "category_id": record.get("category_id")
                 })
         
         return transformed_records
