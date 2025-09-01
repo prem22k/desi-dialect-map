@@ -78,22 +78,23 @@ class CorpusAPIRecords:
         # The API infers user_id from the Bearer token
         return self.get_records(skip=skip, limit=limit)
     
-    def get_records(self, category_id: Optional[str] = None, user_id: Optional[str] = None,
-                   media_type: Optional[str] = None, skip: int = 0, limit: int = 100, 
-                   force_refresh: bool = False) -> List[Dict[str, Any]]:
-        """Get records with Bearer token - returns user's own data or all data based on role"""
-        if not api_auth.access_token:
-            st.warning("Authentication required to fetch records")
+    def get_records(self, category_id: Optional[str] = None, media_type: Optional[str] = None, 
+                   skip: int = 0, limit: int = 100, force_refresh: bool = False) -> List[Dict[str, Any]]:
+        """Get records from the API - ADMIN ONLY access."""
+        from api_user import UserAPI
+        
+        # Check if user is admin
+        user_api = UserAPI()
+        is_admin = user_api.is_admin(self.access_token) if self.access_token else False
+        
+        if not is_admin:
+            st.warning(" Access denied: Only administrators can view all records.")
             return []
         
-        # Check user role to determine data access
-        from api_user import user_api
-        is_admin = user_api.is_admin(api_auth.access_token)
-        
-        # Check cache to avoid redundant API calls (unless force refresh)
-        current_params = {"category_id": category_id, "media_type": media_type, "skip": skip, "limit": limit, "is_admin": is_admin}
+        # Check cache first
+        current_params = {"category_id": category_id, "media_type": media_type, "skip": skip, "limit": limit}
         if not force_refresh and self._cached_records is not None and self._cache_params == current_params:
-            st.write(f"🔍 DEBUG: Using cached records ({len(self._cached_records)} records)")
+            st.write(f" DEBUG: Using cached records ({len(self._cached_records)} records)")
             return self._cached_records
         
         # Prepare parameters
@@ -106,15 +107,12 @@ class CorpusAPIRecords:
         if media_type:
             params["media_type"] = media_type
         
-        # For admins, we can add additional parameters if the API supports it
-        # For normal users, Bearer token restricts to their own data
-        
-        st.write(f"🔍 DEBUG: Fetching records (Admin: {is_admin}) with params: {params}")
+        st.write(f" DEBUG: Fetching all records (Admin access) with params: {params}")
         
         try:
             result = self._make_request("GET", "/api/v1/records/", params=params, include_auth=True)
             if isinstance(result, list):
-                st.write(f"🔍 DEBUG: Retrieved {len(result)} records")
+                st.write(f" DEBUG: Retrieved {len(result)} records")
                 # Cache the result
                 self._cached_records = result
                 self._cache_params = current_params
@@ -126,6 +124,40 @@ class CorpusAPIRecords:
         except Exception as e:
             st.error(f"Error fetching records: {str(e)}")
             return []
+    
+    def get_user_contributions(self, user_id: str, force_refresh: bool = False) -> Dict[str, Any]:
+        """Get user contributions from /api/v1/users/{user_id}/contributions endpoint."""
+        
+        # Check cache first
+        cache_key = f"contributions_{user_id}"
+        if not force_refresh and hasattr(self, '_cached_contributions') and cache_key in self._cached_contributions:
+            st.write(f"🔍 DEBUG: Using cached contributions for user {user_id}")
+            return self._cached_contributions[cache_key]
+        
+        st.write(f"🔍 DEBUG: Fetching contributions for user {user_id}")
+        
+        try:
+            result = self._make_request("GET", f"/api/v1/users/{user_id}/contributions", include_auth=True)
+            
+            if isinstance(result, dict) and "error" not in result:
+                st.write(f"🔍 DEBUG: Retrieved contributions - Total: {result.get('total_contributions', 0)}")
+                
+                # Cache the result
+                if not hasattr(self, '_cached_contributions'):
+                    self._cached_contributions = {}
+                self._cached_contributions[cache_key] = result
+                
+                return result
+            elif isinstance(result, dict) and "error" in result:
+                st.error(f"Failed to fetch user contributions: {result['error']}")
+                return {"error": result['error']}
+            else:
+                st.error("Unexpected response format from contributions endpoint")
+                return {"error": "Unexpected response format"}
+                
+        except Exception as e:
+            st.error(f"Error fetching user contributions: {str(e)}")
+            return {"error": str(e)}
     
     def get_record(self, record_id: str) -> Optional[Dict[str, Any]]:
         """Get a specific record by ID"""
