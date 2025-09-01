@@ -68,22 +68,33 @@ class CorpusAPIRecords:
     
     def get_records(self, category_id: Optional[str] = None, user_id: Optional[str] = None,
                    media_type: Optional[str] = None, skip: int = 0, limit: int = 100) -> List[Dict[str, Any]]:
-        """Get all records with optional filtering and pagination using Bearer token"""
+        """Get user's own records with Bearer token (API restricts to authenticated user's records)"""
+        if not api_auth.access_token:
+            st.warning("Authentication required to fetch records")
+            return []
+        
+        # When using Bearer token, API typically returns only user's own records
+        # Don't pass user_id as it's inferred from the token
         params = {
             "skip": skip,
             "limit": limit
         }
         if category_id:
             params["category_id"] = category_id
-        if user_id:
-            params["user_id"] = user_id
         if media_type:
             params["media_type"] = media_type
         
-        result = self._make_request("GET", "/records/", params=params, include_auth=True)
-        if isinstance(result, list):
-            return result
-        return []
+        try:
+            result = self._make_request("GET", "/records/", params=params, include_auth=True)
+            if isinstance(result, list):
+                return result
+            elif isinstance(result, dict) and "error" in result:
+                st.error(f"Failed to fetch records: {result['error']}")
+                return []
+            return []
+        except Exception as e:
+            st.error(f"Error fetching records: {str(e)}")
+            return []
     
     def get_record(self, record_id: str) -> Optional[Dict[str, Any]]:
         """Get a specific record by ID"""
@@ -408,25 +419,30 @@ class CorpusAPIRecords:
 api_records = CorpusAPIRecords()
 
 
-def get_all_records_cached() -> List[Dict[str, Any]]:
-    """Get all records from API (cached)"""
+def get_user_records_cached() -> List[Dict[str, Any]]:
+    """Get user's records from API (cached)"""
     if not api_auth.is_authenticated():
         return []
     
     try:
         return api_records.get_records(limit=1000)
     except Exception as e:
-        st.error(f"Failed to fetch all records: {str(e)}")
+        st.error(f"Failed to fetch your records: {str(e)}")
         return []
 
 
-def get_records_for_map() -> List[Dict[str, Any]]:
-    """Get records suitable for map display with new API response structure"""
+def get_user_records_for_map() -> List[Dict[str, Any]]:
+    """Get user's image records for map display (Bearer token restricts to user's own records)"""
     if not api_auth.is_authenticated():
         return []
     
     try:
+        # With Bearer token, this returns only the authenticated user's records
         records = api_records.get_records(media_type="image", limit=1000)
+        
+        if not records:
+            st.info("📍 You haven't uploaded any image records yet. Upload your first dialect word to see it on the map!")
+            return []
         
         # Transform records to match our app's expected format using new API structure
         transformed_records = []
@@ -465,12 +481,12 @@ def get_records_for_map() -> List[Dict[str, Any]]:
         
         return transformed_records
     except Exception as e:
-        st.error(f"Failed to fetch records: {str(e)}")
+        st.error(f"Failed to fetch your records: {str(e)}")
         return []
 
 
-def get_random_record() -> Optional[Dict[str, Any]]:
-    """Get a random record for display"""
+def get_random_user_record() -> Optional[Dict[str, Any]]:
+    """Get a random record from user's own records"""
     if not api_auth.is_authenticated():
         return None
     
@@ -488,7 +504,7 @@ def get_random_record() -> Optional[Dict[str, Any]]:
             }
         return None
     except Exception as e:
-        st.error(f"Failed to fetch random record: {str(e)}")
+        st.error(f"Failed to fetch your records: {str(e)}")
         return None
 
 

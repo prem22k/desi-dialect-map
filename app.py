@@ -184,7 +184,6 @@ def main():
                     format_func=lambda x: category_options.get(x, "Unknown"),
                     index=0 if category_options else None,
                     help="Choose the most appropriate category for your dialect word"
-                )
                 st.info(f"Selected: {category_options.get(selected_category, 'None')}")
             else:
                 st.warning("⚠️ No categories available. A default category will be used.")
@@ -226,12 +225,14 @@ def main():
                         )
                         
                         if record_id:
-                            st.success(f"✅ Your word '{dialect_word}' has been added to the map!")
+                            st.success(f"✅ Your word '{dialect_word}' has been added to your map!")
                             st.info(f"Record ID: {record_id}")
-                            # Clear the form
+                            st.balloons()  # Celebration animation
+                            # Clear the form by rerunning
                             st.rerun()
                         else:
                             st.error("❌ Failed to add record. Please check the error messages above.")
+                            st.info("💡 Try checking your internet connection and login status.")
                 else:
                     st.error("Could not geocode location. Please check the location name.")
             else:
@@ -252,13 +253,16 @@ def main():
                     st.info("💡 Enter the word or phrase in your local dialect")
                 if "location" in missing_fields:
                     st.info("💡 Enter your city, village, or region name")
+                    
+        st.markdown("---")
+        st.info("🔒 **Privacy Note:** Your uploaded records are private to your account and can only be viewed by you when logged in.")
 
         st.markdown("---")
         st.header("📊 Project Stats")
         
         if api_auth_ui.api_auth.is_authenticated():
-            with st.spinner("Loading statistics..."):
-                records = api_records.get_all_records_cached()
+            with st.spinner("Loading your statistics..."):
+                records = api_records.get_user_records_cached()
                 total_records = len(records)
                 
                 col1, col2, col3, col4 = st.columns(4)
@@ -276,10 +280,13 @@ def main():
                     
                 # Show recent activity if available
                 if records:
-                    st.subheader("🕒 Recent Activity")
+                    st.subheader("🕒 Your Recent Activity")
                     recent_records = sorted(records, key=lambda x: x.get("created_at", ""), reverse=True)[:5]
                     for record in recent_records:
-                        st.write(f"• {record.get('title', 'Untitled')} - {record.get('language', 'Unknown')}")
+                        status_icon = "✅" if record.get("reviewed") else "⏳"
+                        st.write(f"• {status_icon} {record.get('title', 'Untitled')} - {record.get('language', 'Unknown')}")
+                else:
+                    st.info("No records yet. Upload your first dialect word to get started!")
 
     # --- Main Page ---
 
@@ -353,38 +360,14 @@ def main():
                 disabled=True
             )
 
-    # Get records from API
+    # Get user's records from API
     if api_auth_ui.api_auth.is_authenticated():
         try:
-            records = api_records.get_records_for_map()
+            records = api_records.get_user_records_for_map()
             filtered_records = records
         except Exception as e:
-            st.warning("⚠️ API temporarily unavailable. Showing demo data.")
-            # Fallback to demo data when API is down
-            records = [
-                {
-                    "id": "demo_1",
-                    "dialect_word": "Baingan",
-                    "location_text": "Hyderabad, Telangana",
-                    "latitude": 17.3850,
-                    "longitude": 78.4867,
-                    "image_path": None,
-                    "is_verified": True,
-                    "user_id": "demo_user",
-                    "created_at": "2025-01-01T00:00:00Z"
-                },
-                {
-                    "id": "demo_2", 
-                    "dialect_word": "Cycle",
-                    "location_text": "Mumbai, Maharashtra",
-                    "latitude": 19.0760,
-                    "longitude": 72.8777,
-                    "image_path": None,
-                    "is_verified": True,
-                    "user_id": "demo_user",
-                    "created_at": "2025-01-01T00:00:00Z"
-                }
-            ]
+            st.warning("⚠️ API temporarily unavailable.")
+            records = []
             filtered_records = records
         
         # Apply search filter
@@ -408,10 +391,10 @@ def main():
     else:
         filtered_records = []
 
-    tab1, tab2, tab3 = st.tabs(["🗺️ Interactive Map", "🖼️ Community Gallery", "🚀 API Mode"])
+    tab1, tab2, tab3 = st.tabs(["🗺️ Your Dialect Map", "🖼️ Your Gallery", "🚀 API Mode"])
 
     with tab1:
-        st.subheader("A Living Map of India's Languages")
+        st.subheader("Your Dialect Contributions Map")
         
         if api_auth_ui.api_auth.is_authenticated():
             # Filter records with valid coordinates
@@ -420,35 +403,43 @@ def main():
                 if record.get('latitude') and record.get('longitude')
             ]
 
-            m = folium.Map(
-                location=[20.5937, 78.9629], zoom_start=5, tiles="CartoDB positron"
-            )
-
             if map_data:
+                # Center map on user's records
+                avg_lat = sum(r['latitude'] for r in map_data) / len(map_data)
+                avg_lng = sum(r['longitude'] for r in map_data) / len(map_data)
+                
+                m = folium.Map(
+                    location=[avg_lat, avg_lng], zoom_start=6, tiles="CartoDB positron"
+                )
+
                 heat_data = [
                     [record["latitude"], record["longitude"]] for record in map_data
                 ]
                 HeatMap(heat_data, radius=15).add_to(
-                    folium.FeatureGroup(name="Heatmap").add_to(m)
+                    folium.FeatureGroup(name="Your Contributions Heatmap").add_to(m)
                 )
 
-                marker_cluster = MarkerCluster(name="Submissions").add_to(m)
+                marker_cluster = MarkerCluster(name="Your Dialect Words").add_to(m)
                 for record in map_data:
                     image_data = api_records.get_image_from_api(record["id"])
                     if image_data:
                         try:
                             image_format = get_image_format(image_data)
                             encoded = base64.b64encode(image_data).decode()
-                            html = f'<img src="data:image/{image_format};base64,{encoded}" width="150"><br><b>{record["dialect_word"]}</b>'
+                            status_icon = "✅" if record.get("is_verified") else "⏳"
+                            html = f'<img src="data:image/{image_format};base64,{encoded}" width="150"><br><b>{record["dialect_word"]}</b><br>{status_icon} {"Verified" if record.get("is_verified") else "Pending Review"}'
                         except Exception:
                             html = f'<b>{record["dialect_word"]}</b><br><i>Image unavailable</i>'
                     else:
-                        html = f'<b>{record["dialect_word"]}</b><br><i>Image unavailable</i>'
+                        status_icon = "✅" if record.get("is_verified") else "⏳"
+                        html = f'<b>{record["dialect_word"]}</b><br>{status_icon} {"Verified" if record.get("is_verified") else "Pending Review"}<br><i>Image unavailable</i>'
 
                     popup = folium.Popup(html, max_width=200)
 
+                    # Different icons for verified vs pending
+                    icon_color = "🟢" if record.get("is_verified") else "🟡"
                     icon = folium.DivIcon(
-                        html=f'<div style="font-size: 24px;">📍</div>',
+                        html=f'<div style="font-size: 24px;">{icon_color}</div>',
                         icon_size=(30, 30),
                         icon_anchor=(15, 30),
                     )
@@ -463,15 +454,31 @@ def main():
 
                 folium.LayerControl().add_to(m)
                 st_folium(m, width="100%", height=700, returned_objects=[])
+                
+                # Show summary stats
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("📍 Your Locations", len(map_data))
+                with col2:
+                    verified_count = len([r for r in map_data if r.get("is_verified")])
+                    st.metric("✅ Verified", verified_count)
+                with col3:
+                    pending_count = len(map_data) - verified_count
+                    st.metric("⏳ Pending", pending_count)
             else:
                 st.info(
-                    "No submissions match your criteria. Try a different filter or be the first to contribute!"
+                    "🗺️ Your map is empty! Upload your first dialect word to see it appear here."
                 )
+                st.markdown("**Get started:**")
+                st.markdown("1. 📸 Upload an image in the sidebar")
+                st.markdown("2. 📝 Enter your dialect word")
+                st.markdown("3. 📍 Add your location")
+                st.markdown("4. 🚀 Click 'Put my word on the map!'")
         else:
-            st.info("Please login to view the map")
+            st.info("🔐 Please login to view your dialect map")
 
     with tab2:
-        st.subheader("Community Gallery")
+        st.subheader("Your Dialect Gallery")
         
         if api_auth_ui.api_auth.is_authenticated():
             if filtered_records:
@@ -495,9 +502,12 @@ def main():
 
                 paginated_records = filtered_records[start_index:end_index]
 
-                cols = st.columns(4)
+                cols = st.columns(3)  # Changed to 3 columns for better display
                 for i, record in enumerate(paginated_records):
-                    with cols[i % 4]:
+                    with cols[i % 3]:
+                        # Show verification status
+                        status_badge = "✅ Verified" if record.get("is_verified") else "⏳ Pending Review"
+                        
                         image_data = api_records.get_image_from_api(record["id"])
                         if image_data:
                             try:
@@ -507,14 +517,30 @@ def main():
                                     caption=f"'{record['dialect_word']}' from {record.get('location_text', 'Unknown Location')}",
                                     use_container_width=True,
                                 )
+                                st.caption(f"{status_badge} • {record.get('language', 'Unknown')}")
                             except (IOError, TypeError, AttributeError):
                                 st.info(f"'{record['dialect_word']}' from {record.get('location_text', 'Unknown Location')} (image unavailable)")
+                                st.caption(status_badge)
                         else:
                             st.info(f"'{record['dialect_word']}' from {record.get('location_text', 'Unknown Location')} (image unavailable)")
+                            st.caption(status_badge)
+                            
+                        # Show additional details in expander
+                        with st.expander("Details"):
+                            st.write(f"**Created:** {record.get('created_at', 'Unknown')[:10]}")
+                            st.write(f"**Language:** {record.get('language', 'Unknown')}")
+                            st.write(f"**Status:** {record.get('status', 'Unknown')}")
+                            if record.get('file_size'):
+                                st.write(f"**File Size:** {record.get('file_size')} bytes")
             else:
-                st.info("The gallery is empty or no submissions match your criteria.")
+                st.info("🖼️ Your gallery is empty! Upload some dialect words to see them here.")
+                st.markdown("**Your contributions will appear here once uploaded:**")
+                st.markdown("• 📸 Images with dialect words")
+                st.markdown("• ✅ Verification status")
+                st.markdown("• 📍 Location information")
+                st.markdown("• 🗣️ Language details")
         else:
-            st.info("Please login to view the gallery")
+            st.info("🔐 Please login to view your gallery")
 
     with tab3:
         st.subheader("🚀 Indic Corpus Collections API")
@@ -536,10 +562,12 @@ def main():
                 st.info("The app will continue with demo data until the API is restored.")
         
         st.markdown("Connect to the official Indic Corpus Collections API to:")
-        st.markdown("• 📤 Submit dialect records to the centralized database")
-        st.markdown("• 🗺️ Browse records from across India")
-        st.markdown("• 📊 View analytics and user contributions")
-        st.markdown("• 🔍 Search nearby records and filter by categories")
+        st.markdown("• 📤 Submit your dialect records to the centralized database")
+        st.markdown("• 🗺️ View your contributions on the map")
+        st.markdown("• 📊 Track your upload statistics and verification status")
+        st.markdown("• 🔍 Manage your records and categories")
+        
+        st.info("ℹ️ **Note:** With Bearer token authentication, you can only view and manage your own records for privacy and security.")
         
         api_auth_ui.main_api_interface()
         
@@ -579,15 +607,19 @@ def main():
             if user_records:
                 st.markdown("---")
                 st.subheader("Your Recent Contributions")
-                recent_records = user_records[:5]  # Show last 5
+                recent_records = sorted(user_records, key=lambda x: x.get('created_at', ''), reverse=True)[:5]
                 
                 for record in recent_records:
-                    with st.expander(f"'{record.get('title', 'Untitled')}' - {record.get('created_at', 'Unknown date')[:10]}"):
+                    status_icon = "✅" if record.get('reviewed') else "⏳"
+                    with st.expander(f"{status_icon} '{record.get('title', 'Untitled')}' - {record.get('created_at', 'Unknown date')[:10]}"):
                         st.write(f"**Status:** {'✅ Verified' if record.get('reviewed') else '⏳ Pending Review'}")
                         st.write(f"**Language:** {record.get('language', 'Unknown')}")
                         st.write(f"**Media Type:** {record.get('media_type', 'Unknown')}")
                         if record.get('location'):
                             st.write(f"**Location:** {record['location'].get('latitude', 'N/A')}, {record['location'].get('longitude', 'N/A')}")
+                        st.write(f"**Record ID:** {record.get('uid', 'N/A')}")
+            else:
+                st.info("No contributions yet. Upload your first dialect word!")
             
             # Category Information
             st.markdown("---")
