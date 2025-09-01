@@ -554,14 +554,40 @@ api_records = CorpusAPIRecords()
 
 
 def get_user_records_cached() -> List[Dict[str, Any]]:
-    """Get user's records from API (cached)"""
+    """Get user's contributions from API (cached) - Updated to use contributions endpoint"""
     if not api_auth.is_authenticated():
         return []
     
     try:
-        return api_records.get_records(limit=1000)
+        # Get user ID first
+        from api_user import user_api
+        user_id = user_api.get_user_id(api_auth.access_token)
+        if not user_id:
+            st.error("Could not retrieve user ID for stats")
+            return []
+        
+        # Get contributions data
+        contributions_data = api_records.get_user_contributions(user_id)
+        if "error" in contributions_data:
+            st.error(f"Failed to fetch your contributions: {contributions_data['error']}")
+            return []
+        
+        # Convert contributions data to list format for backward compatibility
+        all_contributions = []
+        media_types = ['audio', 'video', 'text', 'image', 'document']
+        
+        for media_type in media_types:
+            contributions_key = f"{media_type}_contributions"
+            contributions = contributions_data.get(contributions_key, [])
+            for contrib in contributions:
+                # Add media_type to each contribution for compatibility
+                contrib['media_type'] = media_type
+                all_contributions.append(contrib)
+        
+        return all_contributions
+        
     except Exception as e:
-        st.error(f"Failed to fetch your records: {str(e)}")
+        st.error(f"Failed to fetch your contributions: {str(e)}")
         return []
 
 
