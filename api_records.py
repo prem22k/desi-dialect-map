@@ -253,6 +253,11 @@ class CorpusAPIRecords:
                          total_chunks: int, upload_uuid: str) -> Dict[str, Any]:
         """Upload a single chunk of a file using multipart/form-data"""
         
+        # Debug logging
+        st.write(f"🔍 DEBUG: Uploading chunk {chunk_index + 1}/{total_chunks}")
+        st.write(f"🔍 DEBUG: Chunk size: {len(chunk_data)} bytes")
+        st.write(f"🔍 DEBUG: Upload UUID: {upload_uuid}")
+        
         # Prepare multipart form data as per API spec
         files = {
             'chunk': ('chunk', chunk_data, 'application/octet-stream'),
@@ -268,14 +273,20 @@ class CorpusAPIRecords:
             "Authorization": f"Bearer {api_auth.access_token}"
         }
         
+        st.write(f"🔍 DEBUG: Making POST request to: {url}")
+        st.write(f"🔍 DEBUG: Headers: {headers}")
+        
         try:
             response = self.session.post(url, headers=headers, files=files)
+            st.write(f"🔍 DEBUG: Response status: {response.status_code}")
+            st.write(f"🔍 DEBUG: Response headers: {dict(response.headers)}")
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
             st.error(f"Chunk upload failed: {str(e)}")
-            if hasattr(e.response, 'text'):
-                st.error(f"Response: {e.response.text}")
+            if hasattr(e, 'response') and e.response is not None:
+                st.error(f"Response status: {e.response.status_code}")
+                st.error(f"Response text: {e.response.text}")
             return {"error": str(e)}
         except json.JSONDecodeError as e:
             st.error(f"Invalid JSON response: {str(e)}")
@@ -312,6 +323,9 @@ class CorpusAPIRecords:
         if longitude is not None:
             data["longitude"] = longitude
         
+        # Debug logging
+        st.write(f"🔍 DEBUG: Finalizing upload with data: {data}")
+        
         # Make request with form data and Bearer token
         url = f"{self.base_url}/records/upload"
         headers = {
@@ -320,14 +334,22 @@ class CorpusAPIRecords:
             "Content-Type": "application/x-www-form-urlencoded"
         }
         
+        st.write(f"🔍 DEBUG: Making POST request to: {url}")
+        st.write(f"🔍 DEBUG: Headers: {headers}")
+        st.write(f"🔍 DEBUG: Payload: {data}")
+        
         try:
             response = self.session.post(url, headers=headers, data=data)
+            st.write(f"🔍 DEBUG: Response status: {response.status_code}")
+            st.write(f"🔍 DEBUG: Response headers: {dict(response.headers)}")
+            st.write(f"🔍 DEBUG: Response text: {response.text}")
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
             st.error(f"Upload finalization failed: {str(e)}")
-            if hasattr(e.response, 'text'):
-                st.error(f"Response: {e.response.text}")
+            if hasattr(e, 'response') and e.response is not None:
+                st.error(f"Response status: {e.response.status_code}")
+                st.error(f"Response text: {e.response.text}")
             return {"error": str(e)}
         except json.JSONDecodeError as e:
             st.error(f"Invalid JSON response: {str(e)}")
@@ -512,18 +534,27 @@ def add_record_to_api(dialect_word: str, location_text: str, image_data: bytes,
                      latitude: float, longitude: float, category_id: Optional[str] = None,
                      language: str = "hindi", release_rights: str = "family_or_friend") -> Optional[str]:
     """Add a new record to the API"""
+    st.write("🔍 DEBUG: Starting add_record_to_api function")
+    
     if not api_auth.is_authenticated():
         st.error("Please login to submit records")
         return None
     
+    st.write(f"🔍 DEBUG: Authentication OK, user_id: {api_auth.user_info.get('user_id') if api_auth.user_info else 'None'}")
+    
     # Get or create default category if none provided
     if not category_id:
+        st.write("🔍 DEBUG: No category provided, getting default category")
+        from api_categories import get_default_category
         default_category = get_default_category()
         if default_category:
             category_id = default_category.get("id") or default_category.get("category_id")
+            st.write(f"🔍 DEBUG: Using default category: {category_id}")
         else:
             st.error("No category available. Please create a category first.")
             return None
+    
+    st.write(f"🔍 DEBUG: Calling upload_image_record with category_id: {category_id}")
     
     result = api_records.upload_image_record(
         image_data=image_data,
@@ -534,6 +565,8 @@ def add_record_to_api(dialect_word: str, location_text: str, image_data: bytes,
         category_id=category_id,
         release_rights=release_rights
     )
+    
+    st.write(f"🔍 DEBUG: Upload result: {result}")
     
     if result:
         return result.get("uid")
