@@ -69,14 +69,13 @@ class CorpusAPIRecords:
             return {"error": "Invalid response format"}
     
     def get_user_records(self, skip: int = 0, limit: int = 100) -> List[Dict[str, Any]]:
-        """Get current user's records (same as get_records with Bearer token)"""
+        """Get current user's records - DEPRECATED: Use get_user_contributions instead"""
         if not api_auth.access_token:
             st.warning("Please login to view your records")
             return []
         
-        # With Bearer token, get_records already returns only user's records
-        # The API infers user_id from the Bearer token
-        return self.get_records(skip=skip, limit=limit)
+        st.warning("⚠️ get_user_records is deprecated. Use get_user_contributions for better data access.")
+        return []
     
     def get_records(self, category_id: Optional[str] = None, media_type: Optional[str] = None, 
                    skip: int = 0, limit: int = 100, force_refresh: bool = False) -> List[Dict[str, Any]]:
@@ -85,7 +84,7 @@ class CorpusAPIRecords:
         
         # Check if user is admin
         user_api = UserAPI()
-        is_admin = user_api.is_admin(self.access_token) if self.access_token else False
+        is_admin = user_api.is_admin(api_auth.access_token) if api_auth.access_token else False
         
         if not is_admin:
             st.warning(" Access denied: Only administrators can view all records.")
@@ -157,6 +156,45 @@ class CorpusAPIRecords:
                 
         except Exception as e:
             st.error(f"Error fetching user contributions: {str(e)}")
+            return {"error": str(e)}
+    
+    def get_user_contributions_by_media(self, user_id: str, media_type: str, force_refresh: bool = False) -> Dict[str, Any]:
+        """Get user contributions by media type from /api/v1/users/{user_id}/contributions/{media_type} endpoint."""
+        
+        # Validate media type
+        valid_media_types = ['text', 'audio', 'video', 'image', 'document']
+        if media_type not in valid_media_types:
+            return {"error": f"Invalid media type. Must be one of: {', '.join(valid_media_types)}"}
+        
+        # Check cache first
+        cache_key = f"contributions_{user_id}_{media_type}"
+        if not force_refresh and hasattr(self, '_cached_media_contributions') and cache_key in self._cached_media_contributions:
+            st.write(f"🔍 DEBUG: Using cached {media_type} contributions for user {user_id}")
+            return self._cached_media_contributions[cache_key]
+        
+        st.write(f"🔍 DEBUG: Fetching {media_type} contributions for user {user_id}")
+        
+        try:
+            result = self._make_request("GET", f"/api/v1/users/{user_id}/contributions/{media_type}", include_auth=True)
+            
+            if isinstance(result, dict) and "error" not in result:
+                st.write(f"🔍 DEBUG: Retrieved {media_type} contributions - Total: {result.get('total_contributions', 0)}")
+                
+                # Cache the result
+                if not hasattr(self, '_cached_media_contributions'):
+                    self._cached_media_contributions = {}
+                self._cached_media_contributions[cache_key] = result
+                
+                return result
+            elif isinstance(result, dict) and "error" in result:
+                st.error(f"Failed to fetch {media_type} contributions: {result['error']}")
+                return {"error": result['error']}
+            else:
+                st.error(f"Unexpected response format from {media_type} contributions endpoint")
+                return {"error": "Unexpected response format"}
+                
+        except Exception as e:
+            st.error(f"Error fetching {media_type} contributions: {str(e)}")
             return {"error": str(e)}
     
     def get_record(self, record_id: str) -> Optional[Dict[str, Any]]:

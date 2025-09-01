@@ -47,7 +47,7 @@ def display_contributions_with_access_control(contributions_data: Dict[str, Any]
             
             for i, record in enumerate(contributions):
                 access_icon = "🔓" if user_is_admin else "🔒"
-                with st.expander(f"{access_icon} {record.get('title', f'{media_type.title()} {i+1}')}"): 
+                with st.expander(f"{access_icon} {record.get('title', f'{media_type.title()} {i+1}')}"):
                     col1, col2 = st.columns(2)
                     
                     with col1:
@@ -72,6 +72,63 @@ def display_contributions_with_access_control(contributions_data: Dict[str, Any]
                     
                     if record.get('file_hash') and user_is_admin:
                         st.write(f"**File Hash:** {record['file_hash']}")
+
+def display_media_contributions(user_id: str, media_type: str, user_is_admin: bool = False, force_refresh: bool = False):
+    """Display contributions for a specific media type using the new endpoint"""
+    from api_records import api_records
+    
+    try:
+        contributions_data = api_records.get_user_contributions_by_media(user_id, media_type, force_refresh)
+        
+        if "error" in contributions_data:
+            st.error(f"Error loading {media_type} contributions: {contributions_data['error']}")
+            return
+        
+        total_contributions = contributions_data.get('total_contributions', 0)
+        contributions = contributions_data.get('contributions', [])
+        
+        if total_contributions == 0:
+            st.info(f"📝 No {media_type} contributions found.")
+            return
+        
+        st.success(f"📊 **{media_type.title()} Contributions**: {total_contributions}")
+        
+        for i, record in enumerate(contributions):
+            access_icon = "🔓" if user_is_admin else "🔒"
+            with st.expander(f"{access_icon} {record.get('title', f'{media_type.title()} {i+1}')}"):
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.write(f"**Title:** {record.get('title', 'N/A')}")
+                    st.write(f"**Description:** {record.get('description', 'N/A')}")
+                    st.write(f"**Language:** {record.get('language', 'N/A')}")
+                    st.write(f"**Reviewed:** {'✅ Yes' if record.get('reviewed') else '⏳ Pending'}")
+                
+                with col2:
+                    if user_is_admin:
+                        st.write(f"**ID:** {record.get('id', 'N/A')}")
+                        st.write(f"**User ID:** {record.get('user_id', 'N/A')}")
+                    st.write(f"**Size:** {record.get('size', 0)} bytes")
+                    st.write(f"**Created:** {record.get('timestamp', 'N/A')}")
+                    
+                    if record.get('location'):
+                        location = record['location']
+                        st.write(f"**Location:** {location.get('latitude', 'N/A')}, {location.get('longitude', 'N/A')}")
+                
+                if media_type in ['audio', 'video'] and record.get('duration'):
+                    st.write(f"**Duration:** {record['duration']} seconds")
+                
+                if record.get('file_hash') and user_is_admin:
+                    st.write(f"**File Hash:** {record['file_hash']}")
+        
+        # Show access level info
+        if user_is_admin:
+            st.info("🔓 **Admin Access**: You can view detailed information including user IDs and file hashes.")
+        else:
+            st.info("🔒 **Privacy Note:** You are viewing your own contributions. Admins can see additional details.")
+    
+    except Exception as e:
+        st.error(f"Error fetching {media_type} contributions: {str(e)}")
     
     # Show access level info
     if user_is_admin:
