@@ -17,8 +17,10 @@ class CorpusAPIRecords:
     """Record management handler for Indic Corpus Collections API"""
     
     def __init__(self):
-        self.base_url = f"{API_BASE_URL}/api/{API_VERSION}"
+        self.base_url = API_BASE_URL
         self.session = requests.Session()
+        self._cached_records = None
+        self._cache_params = None
     
     def _get_headers(self, include_auth: bool = True) -> Dict[str, str]:
         """Get request headers with Bearer token"""
@@ -78,13 +80,19 @@ class CorpusAPIRecords:
     
     def get_records(self, category_id: Optional[str] = None, user_id: Optional[str] = None,
                    media_type: Optional[str] = None, skip: int = 0, limit: int = 100) -> List[Dict[str, Any]]:
-        """Get user's own records with Bearer token (API restricts to authenticated user's records)"""
+        """Get records with Bearer token - returns only user's own data for normal users"""
         if not api_auth.access_token:
             st.warning("Authentication required to fetch records")
             return []
         
-        # When using Bearer token, API typically returns only user's own records
-        # Don't pass user_id as it's inferred from the token
+        # Check cache to avoid redundant API calls
+        current_params = {"category_id": category_id, "media_type": media_type, "skip": skip, "limit": limit}
+        if self._cached_records is not None and self._cache_params == current_params:
+            st.write(f"🔍 DEBUG: Using cached records ({len(self._cached_records)} records)")
+            return self._cached_records
+        
+        # With Bearer token, API returns only authenticated user's records
+        # user_id parameter is ignored as API infers from Bearer token
         params = {
             "skip": skip,
             "limit": limit
@@ -94,9 +102,15 @@ class CorpusAPIRecords:
         if media_type:
             params["media_type"] = media_type
         
+        st.write(f"🔍 DEBUG: Fetching records with Bearer token, params: {params}")
+        
         try:
             result = self._make_request("GET", "/records/", params=params, include_auth=True)
             if isinstance(result, list):
+                st.write(f"🔍 DEBUG: Retrieved {len(result)} records")
+                # Cache the result
+                self._cached_records = result
+                self._cache_params = current_params
                 return result
             elif isinstance(result, dict) and "error" in result:
                 st.error(f"Failed to fetch records: {result['error']}")
