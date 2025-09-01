@@ -130,8 +130,15 @@ class CorpusAPIRecords:
         # Check cache first
         cache_key = f"contributions_{user_id}"
         if not force_refresh and hasattr(self, '_cached_contributions') and cache_key in self._cached_contributions:
-            st.write(f"🔍 DEBUG: Using cached contributions for user {user_id}")
-            return self._cached_contributions[cache_key]
+            cached_data = self._cached_contributions[cache_key]
+            # Validate cached data is not None and has expected structure
+            if cached_data and isinstance(cached_data, dict) and "total_contributions" in cached_data:
+                st.write(f"🔍 DEBUG: Using cached contributions for user {user_id}")
+                return cached_data
+            else:
+                st.write(f"🔍 DEBUG: Invalid cached data, refreshing for user {user_id}")
+                # Remove invalid cache entry
+                del self._cached_contributions[cache_key]
         
         st.write(f"🔍 DEBUG: Fetching contributions for user {user_id}")
         
@@ -553,10 +560,10 @@ class CorpusAPIRecords:
 api_records = CorpusAPIRecords()
 
 
-def get_user_records_cached() -> List[Dict[str, Any]]:
-    """Get user's contributions from API (cached) - Updated to use contributions endpoint"""
+def get_user_contributions_stats() -> Dict[str, Any]:
+    """Get user's contribution statistics from /api/v1/users/{user_id}/contributions endpoint"""
     if not api_auth.is_authenticated():
-        return []
+        return {"total_contributions": 0, "contributions_by_media_type": {}}
     
     try:
         # Get user ID first
@@ -564,31 +571,36 @@ def get_user_records_cached() -> List[Dict[str, Any]]:
         user_id = user_api.get_user_id(api_auth.access_token)
         if not user_id:
             st.error("Could not retrieve user ID for stats")
-            return []
+            return {"total_contributions": 0, "contributions_by_media_type": {}}
         
         # Get contributions data
         contributions_data = api_records.get_user_contributions(user_id)
-        if "error" in contributions_data:
+        
+        # Handle None or error cases
+        if not contributions_data:
+            return {"total_contributions": 0, "contributions_by_media_type": {}}
+            
+        if isinstance(contributions_data, dict) and "error" in contributions_data:
             st.error(f"Failed to fetch your contributions: {contributions_data['error']}")
-            return []
+            return {"total_contributions": 0, "contributions_by_media_type": {}}
         
-        # Convert contributions data to list format for backward compatibility
-        all_contributions = []
-        media_types = ['audio', 'video', 'text', 'image', 'document']
-        
-        for media_type in media_types:
-            contributions_key = f"{media_type}_contributions"
-            contributions = contributions_data.get(contributions_key, [])
-            for contrib in contributions:
-                # Add media_type to each contribution for compatibility
-                contrib['media_type'] = media_type
-                all_contributions.append(contrib)
-        
-        return all_contributions
+        # Return the stats directly from API response
+        return {
+            "total_contributions": contributions_data.get("total_contributions", 0),
+            "contributions_by_media_type": contributions_data.get("contributions_by_media_type", {}),
+            "audio_duration": contributions_data.get("audio_duration", 0),
+            "video_duration": contributions_data.get("video_duration", 0),
+            # Include contribution arrays for detailed stats if needed
+            "audio_contributions": contributions_data.get("audio_contributions", []),
+            "video_contributions": contributions_data.get("video_contributions", []),
+            "text_contributions": contributions_data.get("text_contributions", []),
+            "image_contributions": contributions_data.get("image_contributions", []),
+            "document_contributions": contributions_data.get("document_contributions", [])
+        }
         
     except Exception as e:
         st.error(f"Failed to fetch your contributions: {str(e)}")
-        return []
+        return {"total_contributions": 0, "contributions_by_media_type": {}}
 
 
 def get_user_records_for_map() -> List[Dict[str, Any]]:

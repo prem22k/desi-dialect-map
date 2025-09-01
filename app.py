@@ -263,29 +263,38 @@ def main():
         
         if api_auth_ui.api_auth.is_authenticated():
             with st.spinner("Loading your statistics..."):
-                records = api_records.get_user_records_cached()
-                total_records = len(records)
+                stats = api_records.get_user_contributions_stats()
+                total_contributions = stats.get("total_contributions", 0)
+                contributions_by_type = stats.get("contributions_by_media_type", {})
                 
                 col1, col2, col3, col4 = st.columns(4)
                 with col1:
-                    st.metric("📝 Total Records", total_records)
+                    st.metric("📝 Total Records", total_contributions)
                 with col2:
-                    image_records = len([r for r in records if r.get("media_type") == "image"])
-                    st.metric("🖼️ Images", image_records)
+                    image_count = contributions_by_type.get("image", 0)
+                    st.metric("🖼️ Images", image_count)
                 with col3:
-                    languages = set(r.get("language", "unknown") for r in records)
+                    # Calculate unique languages from all contributions
+                    all_contributions = []
+                    for media_type in ['audio', 'video', 'text', 'image', 'document']:
+                        contributions = stats.get(f"{media_type}_contributions", [])
+                        all_contributions.extend(contributions)
+                    
+                    languages = set(contrib.get("language", "unknown") for contrib in all_contributions if contrib)
                     st.metric("🗣️ Languages", len(languages))
                 with col4:
-                    verified_records = len([r for r in records if r.get("reviewed")])
-                    st.metric("✅ Verified", verified_records)
+                    verified_count = sum(1 for contrib in all_contributions if contrib and contrib.get("reviewed"))
+                    st.metric("✅ Verified", verified_count)
                     
                 # Show recent activity if available
-                if records:
+                if total_contributions > 0:
                     st.subheader("🕒 Your Recent Activity")
-                    recent_records = sorted(records, key=lambda x: x.get("created_at", ""), reverse=True)[:5]
-                    for record in recent_records:
-                        status_icon = "✅" if record.get("reviewed") else "⏳"
-                        st.write(f"• {status_icon} {record.get('title', 'Untitled')} - {record.get('language', 'Unknown')}")
+                    # Get recent contributions from all media types
+                    recent_contributions = sorted(all_contributions, key=lambda x: x.get("timestamp", ""), reverse=True)[:5]
+                    for contrib in recent_contributions:
+                        if contrib:
+                            status_icon = "✅" if contrib.get("reviewed") else "⏳"
+                            st.write(f"• {status_icon} {contrib.get('title', 'Untitled')} - {contrib.get('language', 'Unknown')}")
                 else:
                     st.info("No records yet. Upload your first dialect word to get started!")
 
