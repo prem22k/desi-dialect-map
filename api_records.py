@@ -105,7 +105,7 @@ class CorpusAPIRecords:
         st.write(f"🔍 DEBUG: Fetching records with Bearer token, params: {params}")
         
         try:
-            result = self._make_request("GET", "/records/", params=params, include_auth=True)
+            result = self._make_request("GET", "/api/v1/records/", params=params, include_auth=True)
             if isinstance(result, list):
                 st.write(f"🔍 DEBUG: Retrieved {len(result)} records")
                 # Cache the result
@@ -122,7 +122,7 @@ class CorpusAPIRecords:
     
     def get_record(self, record_id: str) -> Optional[Dict[str, Any]]:
         """Get a specific record by ID"""
-        result = self._make_request("GET", f"/records/{record_id}", include_auth=True)
+        result = self._make_request("GET", f"/api/v1/records/{record_id}", include_auth=True)
         if "error" not in result:
             return result
         return None
@@ -150,28 +150,28 @@ class CorpusAPIRecords:
         if file_size:
             data["file_size"] = file_size
         
-        result = self._make_request("POST", "/records/", data=data, include_auth=True)
+        result = self._make_request("POST", "/api/v1/records/", data=data, include_auth=True)
         if "error" not in result:
             return result
         return None
     
     def update_record(self, record_id: str, **kwargs) -> Optional[Dict[str, Any]]:
         """Update a record"""
-        result = self._make_request("PUT", f"/records/{record_id}", data=kwargs, include_auth=True)
+        result = self._make_request("PUT", f"/api/v1/records/{record_id}", data=kwargs, include_auth=True)
         if "error" not in result:
             return result
         return None
     
     def patch_record(self, record_id: str, **kwargs) -> Optional[Dict[str, Any]]:
         """Patch a record (partial update)"""
-        result = self._make_request("PATCH", f"/records/{record_id}", data=kwargs, include_auth=True)
+        result = self._make_request("PATCH", f"/api/v1/records/{record_id}", data=kwargs, include_auth=True)
         if "error" not in result:
             return result
         return None
     
     def delete_record(self, record_id: str) -> bool:
         """Delete a record"""
-        result = self._make_request("DELETE", f"/records/{record_id}", include_auth=True)
+        result = self._make_request("DELETE", f"/api/v1/records/{record_id}", include_auth=True)
         return "error" not in result
     
     def search_nearby(self, latitude: float, longitude: float, distance_meters: float,
@@ -202,7 +202,7 @@ class CorpusAPIRecords:
         if media_type:
             params["media_type"] = media_type
         
-        result = self._make_request("GET", "/records/search/nearby", params=params, include_auth=True)
+        result = self._make_request("GET", "/api/v1/records/search/nearby", params=params, include_auth=True)
         if isinstance(result, list):
             return result
         return []
@@ -238,7 +238,7 @@ class CorpusAPIRecords:
         if media_type:
             params["media_type"] = media_type
         
-        result = self._make_request("GET", "/records/search/bbox", params=params, include_auth=True)
+        result = self._make_request("GET", "/api/v1/records/search/bbox", params=params, include_auth=True)
         if isinstance(result, list):
             return result
         return []
@@ -268,7 +268,7 @@ class CorpusAPIRecords:
         if max_distance_meters is not None:
             params["max_distance_meters"] = max_distance_meters
         
-        result = self._make_request("GET", "/records/search/distance", params=params, include_auth=True)
+        result = self._make_request("GET", "/api/v1/records/search/distance", params=params, include_auth=True)
         if isinstance(result, list):
             return result
         return []
@@ -291,7 +291,7 @@ class CorpusAPIRecords:
             'upload_uuid': (None, upload_uuid)
         }
         
-        url = f"{self.base_url}/records/upload/chunk"
+        url = f"{self.base_url}/api/v1/records/upload/chunk"
         headers = {
             "accept": "application/json",
             "Authorization": f"Bearer {api_auth.access_token}"
@@ -362,7 +362,7 @@ class CorpusAPIRecords:
         st.write(f"🔍 DEBUG: User ID in payload: {user_id}")
         
         # Make request with form data and Bearer token
-        url = f"{self.base_url}/records/upload"
+        url = f"{self.base_url}/api/v1/records/upload"
         headers = {
             "accept": "application/json",
             "Authorization": f"Bearer {api_auth.access_token}",
