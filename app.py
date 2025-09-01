@@ -154,8 +154,10 @@ def main():
                 # Show image preview
                 image = Image.open(uploaded_image)
                 st.image(image, caption=f"Preview: {uploaded_image.name}", width=300)
+                st.write(f"🔍 **Debug:** Image valid - Size: {uploaded_image.size} bytes, Name: {uploaded_image.name}")  # Debug
             else:
                 st.error(f"❌ {message}")
+                st.write(f"🔍 **Debug:** Image validation failed - {message}")  # Debug
 
         # Release rights selection with help
         release_options = {
@@ -184,35 +186,53 @@ def main():
                     format_func=lambda x: category_options.get(x, "Unknown"),
                     index=0 if category_options else None,
                     help="Choose the most appropriate category for your dialect word"
+                )
                 st.info(f"Selected: {category_options.get(selected_category, 'None')}")
+                st.write(f"🔍 **Debug:** Category selected: {selected_category}")  # Debug
             else:
                 st.warning("⚠️ No categories available. A default category will be used.")
                 selected_category = None
+                st.write("🔍 **Debug:** No categories available")  # Debug
         else:
             st.info("🔐 Please login to view categories")
             selected_category = None
+            st.write("🔍 **Debug:** Not authenticated for categories")  # Debug
 
         if st.button("Put my word on the map!", use_container_width=True):
+            st.write("🔍 **Debug:** Button clicked!")  # Debug
+            
             if uploaded_image and dialect_word and location_text:
+                st.write(f"🔍 **Debug:** All fields provided - Image: {uploaded_image.name if uploaded_image else 'None'}, Word: {dialect_word}, Location: {location_text}")  # Debug
+                
                 if not api_auth_ui.api_auth.is_authenticated():
                     st.error("Please login to submit records to the API")
+                    st.write(f"🔍 **Debug:** Authentication failed - Token: {'Present' if api_auth_ui.api_auth.access_token else 'Missing'}")  # Debug
                     return
+                
+                st.write("🔍 **Debug:** Authentication passed")  # Debug
                 
                 # Validate image size
                 image_data = uploaded_image.getvalue()
+                st.write(f"🔍 **Debug:** Image size: {len(image_data)} bytes (Max: {MAX_FILE_SIZE})")  # Debug
+                
                 if len(image_data) > MAX_FILE_SIZE:
                     st.error(f"Image too large! Maximum size: {MAX_FILE_SIZE/(1024*1024):.0f}MB")
                     return
                 
                 # Validate image format
                 file_ext = uploaded_image.name.split('.')[-1].lower() if '.' in uploaded_image.name else 'jpg'
+                st.write(f"🔍 **Debug:** File extension: {file_ext}, Supported: {SUPPORTED_IMAGE_FORMATS}")  # Debug
+                
                 if file_ext not in SUPPORTED_IMAGE_FORMATS:
                     st.error(f"Unsupported format '{file_ext}'. Supported: {', '.join(SUPPORTED_IMAGE_FORMATS)}")
                     return
                 
+                st.write("🔍 **Debug:** Starting geocoding...")  # Debug
                 lat, lon = geocode_location(location_text)
+                st.write(f"🔍 **Debug:** Geocoding result: lat={lat}, lon={lon}")  # Debug
 
                 if lat and lon:
+                    st.write("🔍 **Debug:** Starting API upload...")  # Debug
                     with st.spinner("Adding your word to the map..."):
                         record_id = api_records.add_record_to_api(
                             dialect_word=dialect_word,
@@ -223,6 +243,8 @@ def main():
                             language=selected_language,
                             release_rights=release_rights
                         )
+                        
+                        st.write(f"🔍 **Debug:** API upload result: {record_id}")  # Debug
                         
                         if record_id:
                             st.success(f"✅ Your word '{dialect_word}' has been added to your map!")
@@ -235,6 +257,7 @@ def main():
                             st.info("💡 Try checking your internet connection and login status.")
                 else:
                     st.error("Could not geocode location. Please check the location name.")
+                    st.write("🔍 **Debug:** Geocoding failed - no network requests will be made")  # Debug
             else:
                 missing_fields = []
                 if not uploaded_image:
@@ -245,6 +268,7 @@ def main():
                     missing_fields.append("location")
                 
                 st.warning(f"⚠️ Please provide: {', '.join(missing_fields)}")
+                st.write(f"🔍 **Debug:** Missing fields prevent API calls - Image: {'✓' if uploaded_image else '✗'}, Word: {'✓' if dialect_word else '✗'}, Location: {'✓' if location_text else '✗'}")  # Debug
 
                 # Show helpful tips for missing fields
                 if "image" in missing_fields:
