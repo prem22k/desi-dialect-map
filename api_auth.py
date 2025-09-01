@@ -175,7 +175,28 @@ class CorpusAPIAuth:
     
     def is_authenticated(self) -> bool:
         """Check if user is authenticated"""
-        return self.access_token is not None
+        return bool(self.access_token)
+    
+    def get_user_info(self) -> Dict[str, Any]:
+        """Get current user info from Bearer token"""
+        if not self.access_token:
+            return {"error": "Not authenticated"}
+        
+        return self._make_request("GET", "/auth/me", include_auth=True)
+    
+    def get_user_id(self) -> Optional[str]:
+        """Get current user ID from Bearer token"""
+        if self.user_info and self.user_info.get("user_id"):
+            return self.user_info.get("user_id")
+        
+        # Fetch user info if not available
+        user_data = self.get_user_info()
+        if "error" not in user_data and "user_id" in user_data:
+            # Update cached user_info
+            self.user_info = user_data
+            return user_data["user_id"]
+        
+        return None
     
     def logout(self):
         """Logout user"""

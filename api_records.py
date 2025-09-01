@@ -66,6 +66,16 @@ class CorpusAPIRecords:
             st.error(f"Invalid JSON response: {str(e)}")
             return {"error": "Invalid response format"}
     
+    def get_user_records(self, skip: int = 0, limit: int = 100) -> List[Dict[str, Any]]:
+        """Get current user's records (same as get_records with Bearer token)"""
+        if not api_auth.access_token:
+            st.warning("Please login to view your records")
+            return []
+        
+        # With Bearer token, get_records already returns only user's records
+        # The API infers user_id from the Bearer token
+        return self.get_records(skip=skip, limit=limit)
+    
     def get_records(self, category_id: Optional[str] = None, user_id: Optional[str] = None,
                    media_type: Optional[str] = None, skip: int = 0, limit: int = 100) -> List[Dict[str, Any]]:
         """Get user's own records with Bearer token (API restricts to authenticated user's records)"""
@@ -98,7 +108,7 @@ class CorpusAPIRecords:
     
     def get_record(self, record_id: str) -> Optional[Dict[str, Any]]:
         """Get a specific record by ID"""
-        result = self._make_request("GET", f"/records/{record_id}")
+        result = self._make_request("GET", f"/records/{record_id}", include_auth=True)
         if "error" not in result:
             return result
         return None
@@ -126,28 +136,28 @@ class CorpusAPIRecords:
         if file_size:
             data["file_size"] = file_size
         
-        result = self._make_request("POST", "/records/", data=data)
+        result = self._make_request("POST", "/records/", data=data, include_auth=True)
         if "error" not in result:
             return result
         return None
     
     def update_record(self, record_id: str, **kwargs) -> Optional[Dict[str, Any]]:
         """Update a record"""
-        result = self._make_request("PUT", f"/records/{record_id}", data=kwargs)
+        result = self._make_request("PUT", f"/records/{record_id}", data=kwargs, include_auth=True)
         if "error" not in result:
             return result
         return None
     
     def patch_record(self, record_id: str, **kwargs) -> Optional[Dict[str, Any]]:
         """Patch a record (partial update)"""
-        result = self._make_request("PATCH", f"/records/{record_id}", data=kwargs)
+        result = self._make_request("PATCH", f"/records/{record_id}", data=kwargs, include_auth=True)
         if "error" not in result:
             return result
         return None
     
     def delete_record(self, record_id: str) -> bool:
         """Delete a record"""
-        result = self._make_request("DELETE", f"/records/{record_id}")
+        result = self._make_request("DELETE", f"/records/{record_id}", include_auth=True)
         return "error" not in result
     
     def search_nearby(self, latitude: float, longitude: float, distance_meters: float,
@@ -298,16 +308,24 @@ class CorpusAPIRecords:
                        release_rights: str = "family_or_friend", use_uid_filename: bool = False) -> Optional[Dict[str, Any]]:
         """Finalize chunked upload and create a record using application/x-www-form-urlencoded"""
         
-        if not api_auth.user_info or not api_auth.user_info.get("user_id"):
-            st.error("User ID not available. Please login again.")
+        if not api_auth.access_token:
+            st.error("Authentication required. Please login again.")
             return {"error": "User not authenticated"}
+        
+        # Get user_id from /auth/me endpoint
+        user_id = api_auth.get_user_id()
+        if not user_id:
+            st.error("Could not retrieve user ID. Please login again.")
+            return {"error": "User ID not available"}
+        
+        st.write(f"🔍 DEBUG: Retrieved user_id: {user_id}")
         
         # Prepare all required form data parameters as per API spec
         data = {
             "title": title,
             "description": description if description else "",
             "category_id": category_id,
-            "user_id": api_auth.user_info.get("user_id"),
+            "user_id": user_id,  # Required by API
             "media_type": media_type,
             "upload_uuid": upload_uuid,
             "filename": filename,
@@ -325,6 +343,8 @@ class CorpusAPIRecords:
         
         # Debug logging
         st.write(f"🔍 DEBUG: Finalizing upload with data: {data}")
+        st.write(f"🔍 DEBUG: Bearer token present: {bool(api_auth.access_token)}")
+        st.write(f"🔍 DEBUG: User ID in payload: {user_id}")
         
         # Make request with form data and Bearer token
         url = f"{self.base_url}/records/upload"
@@ -540,7 +560,10 @@ def add_record_to_api(dialect_word: str, location_text: str, image_data: bytes,
         st.error("Please login to submit records")
         return None
     
-    st.write(f"🔍 DEBUG: Authentication OK, user_id: {api_auth.user_info.get('user_id') if api_auth.user_info else 'None'}")
+    st.write(f"🔍 DEBUG: Authentication OK, Bearer token available: {bool(api_auth.access_token)}")
+    st.write(f"🔍 DEBUG: User info cached: {bool(api_auth.user_info)}")
+    if api_auth.user_info:
+        st.write(f"🔍 DEBUG: Cached user_id: {api_auth.user_info.get('user_id')}")
     
     # Get or create default category if none provided
     if not category_id:
