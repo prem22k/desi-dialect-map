@@ -312,8 +312,9 @@ class CorpusAPIRecords:
             st.error("Authentication required. Please login again.")
             return {"error": "User not authenticated"}
         
-        # Get user_id from /auth/me endpoint
-        user_id = api_auth.get_user_id()
+        # Get user_id from separate user API to avoid conflicts
+        from api_user import user_api
+        user_id = user_api.get_user_id(api_auth.access_token)
         if not user_id:
             st.error("Could not retrieve user ID. Please login again.")
             return {"error": "User ID not available"}

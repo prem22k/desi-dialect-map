@@ -181,16 +181,22 @@ class CorpusAPIAuth:
         return bool(self.access_token)
     
     def get_user_info(self) -> Dict[str, Any]:
-        """Get current user info from Bearer token"""
+        """Get current user info from Bearer token - always makes fresh API call"""
         import streamlit as st
         
         if not self.access_token:
             return {"error": "Not authenticated"}
         
-        st.write(f"🔍 DEBUG: Making /auth/me request with Bearer token: {self.access_token[:50]}...")
-        result = self._make_request("GET", "/auth/me", include_auth=True)
-        st.write(f"🔍 DEBUG: /auth/me response: {result}")
-        return result
+        st.write(f"🔍 DEBUG: Making fresh /auth/me API request with Bearer token: {self.access_token[:50]}...")
+        
+        # Make fresh API call to /auth/me endpoint (not cached data)
+        try:
+            result = self._make_request("GET", "/auth/me", include_auth=True)
+            st.write(f"🔍 DEBUG: Fresh /auth/me API response: {result}")
+            return result
+        except Exception as e:
+            st.error(f"Failed to fetch user info from /auth/me: {str(e)}")
+            return {"error": str(e)}
     
     def get_user_id(self) -> Optional[str]:
         """Get current user ID from Bearer token"""
