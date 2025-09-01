@@ -179,10 +179,15 @@ class CorpusAPIAuth:
     
     def get_user_info(self) -> Dict[str, Any]:
         """Get current user info from Bearer token"""
+        import streamlit as st
+        
         if not self.access_token:
             return {"error": "Not authenticated"}
         
-        return self._make_request("GET", "/auth/me", include_auth=True)
+        st.write(f"🔍 DEBUG: Making /auth/me request with Bearer token: {self.access_token[:50]}...")
+        result = self._make_request("GET", "/auth/me", include_auth=True)
+        st.write(f"🔍 DEBUG: /auth/me response: {result}")
+        return result
     
     def get_user_id(self) -> Optional[str]:
         """Get current user ID from Bearer token"""
@@ -190,6 +195,7 @@ class CorpusAPIAuth:
         
         # Check if we have cached user_info with 'id' field
         if self.user_info and self.user_info.get("id"):
+            st.write(f"🔍 DEBUG: Using cached user_id: {self.user_info.get('id')}")
             return self.user_info.get("id")
         
         # Fetch user info from /auth/me endpoint
@@ -202,9 +208,12 @@ class CorpusAPIAuth:
             user_id = user_data["id"]
             st.write(f"🔍 DEBUG: Retrieved user_id: {user_id}")
             return user_id
-        
-        st.error("Could not retrieve user ID from /auth/me")
-        return None
+        elif "error" in user_data:
+            st.error(f"API Error from /auth/me: {user_data['error']}")
+            return None
+        else:
+            st.error(f"Invalid response from /auth/me: {user_data}")
+            return None
     
     def logout(self):
         """Logout user"""
