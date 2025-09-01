@@ -2,11 +2,11 @@ import requests
 import streamlit as st
 import json
 import uuid
-import io
-from typing import Optional, Dict, Any, List
-from PIL import Image
 import base64
+import os
+from typing import Optional, Dict, Any, List
 from api_auth import api_auth
+from config.settings import CHUNK_SIZE, MAX_FILE_SIZE, SUPPORTED_IMAGE_FORMATS
 from api_categories import get_default_category
 
 # API Configuration
@@ -324,40 +324,61 @@ class CorpusAPIRecords:
     
     def upload_image_record(self, image_data: bytes, title: str, description: str,
                           location: Dict[str, float], language: str, category_id: str,
-                          release_rights: str = "family_or_friend") -> Optional[Dict[str, Any]]:
-        """Upload an image record with chunked upload"""
+                          filename: str = None, release_rights: str = "family_or_friend") -> Optional[Dict[str, Any]]:
+        """Upload an image record with chunked upload using proper settings"""
         try:
-            # Generate upload UUID
+            # Validate image size
+            if len(image_data) > MAX_FILE_SIZE:
+                st.error(f"Image too large. Maximum size: {MAX_FILE_SIZE / (1024*1024):.1f}MB")
+                return None
+            
+            # Generate unique upload ID
             upload_uuid = str(uuid.uuid4())
-            filename = f"dialect_image_{upload_uuid}.jpg"
             
-            # Convert image to JPEG if needed
-            image = Image.open(io.BytesIO(image_data))
-            if image.mode in ("RGBA", "LA", "P"):
-                image = image.convert("RGB")
+            # Use provided filename or generate one
+            if not filename:
+                filename = f"dialect_image_{upload_uuid}.jpg"
             
-            # Save as JPEG
-            img_buffer = io.BytesIO()
-            image.save(img_buffer, format="JPEG", quality=85)
-            img_data = img_buffer.getvalue()
+            # Validate file extension
+            file_ext = filename.split('.')[-1].lower() if '.' in filename else 'jpg'
+            if file_ext not in SUPPORTED_IMAGE_FORMATS:
+                st.error(f"Unsupported format. Supported: {', '.join(SUPPORTED_IMAGE_FORMATS)}")
+                return None
             
-            # Split into chunks (1MB chunks)
-            chunk_size = 1024 * 1024
-            chunks = [img_data[i:i + chunk_size] for i in range(0, len(img_data), chunk_size)]
-            total_chunks = len(chunks)
+            # Calculate chunks using config settings
+            total_size = len(image_data)
+            total_chunks = (total_size + CHUNK_SIZE - 1) // CHUNK_SIZE
             
-            # Upload chunks
-            for i, chunk in enumerate(chunks):
-                chunk_result = self.upload_file_chunk(chunk, filename, i, total_chunks, upload_uuid)
-                if "error" in chunk_result:
-                    st.error(f"Failed to upload chunk {i + 1}/{total_chunks}: {chunk_result.get('error')}")
+            st.info(f"Uploading {filename} in {total_chunks} chunks...")
+            
+            # Upload chunks with progress
+            progress_bar = st.progress(0)
+            for i in range(total_chunks):
+                start = i * CHUNK_SIZE
+                end = min(start + CHUNK_SIZE, total_size)
+                chunk = image_data[start:end]
+                
+                result = self.upload_file_chunk(
+                    chunk_data=chunk,
+                    filename=filename,
+                    chunk_index=i,
+                    total_chunks=total_chunks,
+                    upload_uuid=upload_uuid
+                )
+                
+                if "error" in result:
+                    st.error(f"Failed to upload chunk {i+1}/{total_chunks}: {result.get('error')}")
                     return None
-                elif "message" not in chunk_result:
-                    st.error(f"Unexpected response for chunk {i + 1}/{total_chunks}")
-                    return None
+                
+                # Update progress
+                progress_bar.progress((i + 1) / total_chunks)
+                st.write(f"Uploaded chunk {i+1}/{total_chunks}")
             
-            # Finalize upload
-            return self.finalize_upload(
+            st.success("All chunks uploaded successfully!")
+            
+            # Finalize upload with proper parameters
+            st.info("Finalizing upload...")
+            result = self.finalize_upload(
                 title=title,
                 description=description,
                 category_id=category_id,
@@ -370,6 +391,13 @@ class CorpusAPIRecords:
                 longitude=location.get("longitude"),
                 release_rights=release_rights
             )
+            
+            if result and "error" not in result:
+                st.success("Image uploaded successfully!")
+                return result
+            else:
+                st.error(f"Upload finalization failed: {result.get('error') if result else 'Unknown error'}")
+                return None
             
         except Exception as e:
             st.error(f"Image upload failed: {str(e)}")

@@ -12,6 +12,7 @@ import random
 import api_auth_ui
 import api_records
 import api_categories
+from config.settings import SUPPORTED_IMAGE_FORMATS, MAX_FILE_SIZE
 
 
 # --- Caching ---
@@ -46,6 +47,31 @@ def get_image_format(image_data):
             return "png"  # Default to png if format is not identifiable
     except (IOError, TypeError, AttributeError):
         return "png"  # Default to png if format is not identifiable
+
+
+def validate_image_upload(uploaded_file) -> tuple[bool, str]:
+    """Validate uploaded image file"""
+    if not uploaded_file:
+        return False, "No file uploaded"
+    
+    # Check file size
+    if uploaded_file.size > MAX_FILE_SIZE:
+        return False, f"File too large. Maximum: {MAX_FILE_SIZE/(1024*1024):.0f}MB"
+    
+    # Check file extension
+    file_ext = uploaded_file.name.split('.')[-1].lower() if '.' in uploaded_file.name else ''
+    if file_ext not in SUPPORTED_IMAGE_FORMATS:
+        return False, f"Unsupported format. Supported: {', '.join(SUPPORTED_IMAGE_FORMATS)}"
+    
+    # Try to open as image
+    try:
+        image_data = uploaded_file.getvalue()
+        Image.open(io.BytesIO(image_data))
+        return True, "Valid image"
+    except Exception as e:
+        return False, f"Invalid image file: {str(e)}"
+    
+    return True, "Valid"
 
 
 def main():
@@ -84,9 +110,25 @@ def main():
         st.markdown("---")
         st.header("Contribute Your Dialect!")
         st.markdown("Help us build a living map of India's languages.")
+        
+        # Show upload guidelines
+        with st.expander("📋 Upload Guidelines", expanded=False):
+            st.markdown(f"""
+            **Image Requirements:**
+            - **Formats**: {', '.join(SUPPORTED_IMAGE_FORMATS)}
+            - **Max Size**: {MAX_FILE_SIZE/(1024*1024):.0f}MB
+            - **Content**: Clear images related to your dialect word
+            
+            **Tips for better uploads:**
+            - Use descriptive titles for your dialect words
+            - Provide accurate location information
+            - Choose appropriate language and release rights
+            """)
 
         uploaded_image = st.file_uploader(
-            "Upload an image...", type=["jpg", "jpeg", "png"]
+            "Upload an image...", 
+            type=SUPPORTED_IMAGE_FORMATS,
+            help=f"Supported formats: {', '.join(SUPPORTED_IMAGE_FORMATS)}. Max size: {MAX_FILE_SIZE/(1024*1024):.0f}MB"
         )
         dialect_word = st.text_input(
             "What is this called in your dialect?", placeholder="e.g., Cycle, Baingan"
@@ -95,47 +137,61 @@ def main():
             "Enter your city/town:", placeholder="e.g., Hyderabad"
         )
         
-        # Language selection from API specification
+        # Language selection
         languages = [
-            "assamese", "bengali", "bodo", "dogri", "gujarati", "hindi", "kannada", 
-            "kashmiri", "konkani", "maithili", "malayalam", "marathi", "meitei", 
-            "nepali", "odia", "punjabi", "sanskrit", "santali", "sindhi", "tamil", 
-            "telugu", "urdu"
+            "hindi", "bengali", "telugu", "marathi", "tamil", "gujarati", "urdu",
+            "kannada", "odia", "punjabi", "malayalam", "assamese", "maithili",
+            "santali", "kashmiri", "nepali", "konkani", "sindhi", "dogri", "manipuri",
+            "bodo", "sanskrit", "english"
         ]
-        selected_language = st.selectbox(
-            "Select Language:",
-            languages,
-            index=languages.index("hindi")  # Default to Hindi
-        )
+        selected_language = st.selectbox("Language", languages, index=0)
         
-        # Release rights selection
-        release_rights_options = ["creator", "family_or_friend", "downloaded", "NA"]
-        selected_release_rights = st.selectbox(
-            "Release Rights:",
-            release_rights_options,
-            index=1  # Default to family_or_friend
-        )
-        
-        # Category selection - requires authentication and Bearer token
-        selected_category = None
-        if api_auth_ui.api_auth.is_authenticated():
-            categories = api_categories.get_category_options()
-            if categories and len(categories) > 1:  # More than just "Select a category"
-                category_names = [cat[0] for cat in categories]
-                category_ids = [cat[1] for cat in categories]
-                
-                selected_category_name = st.selectbox(
-                    "Choose a category:",
-                    category_names,
-                    index=0
-                )
-                
-                if selected_category_name != "Select a category":
-                    selected_category = category_ids[category_names.index(selected_category_name)]
+        # Show image validation status
+        if uploaded_image:
+            is_valid, message = validate_image_upload(uploaded_image)
+            if is_valid:
+                st.success(f"✅ {message}")
+                # Show image preview
+                image = Image.open(uploaded_image)
+                st.image(image, caption=f"Preview: {uploaded_image.name}", width=300)
             else:
-                st.info("No categories available")
+                st.error(f"❌ {message}")
+
+        # Release rights selection with help
+        release_options = {
+            "family_or_friend": "Family or Friend",
+            "creator": "Creator", 
+            "public_domain": "Public Domain",
+            "creative_commons": "Creative Commons"
+        }
+        release_rights = st.selectbox(
+            "Release Rights", 
+            options=list(release_options.keys()),
+            format_func=lambda x: release_options[x],
+            index=0,
+            help="Choose how others can use your contribution"
+        )
+
+        # Categories section
+        st.subheader("📂 Categories")
+        if api_auth_ui.api_auth.is_authenticated():
+            categories = api_categories.get_categories_cached()
+            if categories:
+                category_options = {cat.get("id", cat.get("category_id")): cat.get("name", "Unnamed Category") for cat in categories}
+                selected_category = st.selectbox(
+                    "Select Category",
+                    options=list(category_options.keys()),
+                    format_func=lambda x: category_options.get(x, "Unknown"),
+                    index=0 if category_options else None,
+                    help="Choose the most appropriate category for your dialect word"
+                )
+                st.info(f"Selected: {category_options.get(selected_category, 'None')}")
+            else:
+                st.warning("⚠️ No categories available. A default category will be used.")
+                selected_category = None
         else:
-            st.info("Please login to view categories")
+            st.info("🔐 Please login to view categories")
+            selected_category = None
 
         if st.button("Put my word on the map!", use_container_width=True):
             if uploaded_image and dialect_word and location_text:
@@ -143,90 +199,87 @@ def main():
                     st.error("Please login to submit records to the API")
                     return
                 
+                # Validate image size
                 image_data = uploaded_image.getvalue()
+                if len(image_data) > MAX_FILE_SIZE:
+                    st.error(f"Image too large! Maximum size: {MAX_FILE_SIZE/(1024*1024):.0f}MB")
+                    return
+                
+                # Validate image format
+                file_ext = uploaded_image.name.split('.')[-1].lower() if '.' in uploaded_image.name else 'jpg'
+                if file_ext not in SUPPORTED_IMAGE_FORMATS:
+                    st.error(f"Unsupported format '{file_ext}'. Supported: {', '.join(SUPPORTED_IMAGE_FORMATS)}")
+                    return
+                
                 lat, lon = geocode_location(location_text)
 
                 if lat and lon:
-                    submission_id = api_records.add_record_to_api(
-                        dialect_word, location_text, image_data, lat, lon, selected_category,
-                        selected_language, selected_release_rights
-                    )
-                    
-                    if submission_id:
-                        st.success("Thank you for your contribution!")
-                        st.cache_data.clear()
-                        st.rerun()
-                    else:
-                        st.error("Failed to submit record. Please try again.")
+                    with st.spinner("Adding your word to the map..."):
+                        record_id = api_records.add_record_to_api(
+                            dialect_word=dialect_word,
+                            location_text=location_text,
+                            image_data=image_data,
+                            latitude=lat,
+                            longitude=lon,
+                            language=selected_language,
+                            release_rights=release_rights
+                        )
+                        
+                        if record_id:
+                            st.success(f"✅ Your word '{dialect_word}' has been added to the map!")
+                            st.info(f"Record ID: {record_id}")
+                            # Clear the form
+                            st.rerun()
+                        else:
+                            st.error("❌ Failed to add record. Please check the error messages above.")
                 else:
                     st.error("Could not geocode location. Please check the location name.")
             else:
-                st.warning("Please upload an image and fill in all fields.")
+                missing_fields = []
+                if not uploaded_image:
+                    missing_fields.append("image")
+                if not dialect_word:
+                    missing_fields.append("dialect word")
+                if not location_text:
+                    missing_fields.append("location")
+                
+                st.warning(f"⚠️ Please provide: {', '.join(missing_fields)}")
+
+                # Show helpful tips for missing fields
+                if "image" in missing_fields:
+                    st.info("💡 Upload a clear image that represents your dialect word")
+                if "dialect word" in missing_fields:
+                    st.info("💡 Enter the word or phrase in your local dialect")
+                if "location" in missing_fields:
+                    st.info("💡 Enter your city, village, or region name")
 
         st.markdown("---")
-        st.header("Project Stats")
+        st.header("📊 Project Stats")
         
         if api_auth_ui.api_auth.is_authenticated():
-            records = api_records.get_records_for_map()
-            st.metric("Total Contributions", f"{len(records)}")
-            
-            if records:
-                unique_locations = len(set(record.get('location_text', '') for record in records))
-                st.metric("Unique Locations Mapped", f"{unique_locations}")
-            else:
-                st.metric("Unique Locations Mapped", "0")
-        else:
-            st.metric("Total Contributions", "Login to view")
-            st.metric("Unique Locations Mapped", "Login to view")
-
-        st.markdown("---")
-        st.header("Export Data")
-
-        if api_auth_ui.api_auth.is_authenticated():
-            records = api_records.get_records_for_map()
-            if records:
-                # Convert records to DataFrame for CSV export
-                df = pd.DataFrame(records)
-                csv = df.to_csv(index=False).encode("utf-8")
+            with st.spinner("Loading statistics..."):
+                records = api_records.get_all_records_cached()
+                total_records = len(records)
                 
-                st.download_button(
-                    label="Download data as CSV",
-                    data=csv,
-                    file_name="dialect_map_submissions.csv",
-                    mime="text/csv",
-                    use_container_width=True,
-                )
-            else:
-                st.info("No records available for download")
-        else:
-            st.info("Login to download data")
-
-        st.markdown("---")
-        st.header("Submission of the Day")
-        
-        if api_auth_ui.api_auth.is_authenticated():
-            random_record = api_records.get_random_record()
-            if random_record:
-                sub_id = random_record.get('id')
-                sub_word = random_record.get('dialect_word')
-                sub_loc = random_record.get('location_text')
-                
-                image_data = api_records.get_image_from_api(sub_id)
-                if image_data:
-                    try:
-                        st.image(
-                            image_data,
-                            caption=f"'{sub_word}' from {sub_loc}",
-                            use_container_width=True,
-                        )
-                    except Exception as e:
-                        st.info(f"'{sub_word}' from {sub_loc} (image unavailable)")
-                else:
-                    st.info(f"'{sub_word}' from {sub_loc} (image unavailable)")
-            else:
-                st.info("No submissions yet. Be the first to contribute!")
-        else:
-            st.info("Login to view submissions")
+                col1, col2, col3, col4 = st.columns(4)
+                with col1:
+                    st.metric("📝 Total Records", total_records)
+                with col2:
+                    image_records = len([r for r in records if r.get("media_type") == "image"])
+                    st.metric("🖼️ Images", image_records)
+                with col3:
+                    languages = set(r.get("language", "unknown") for r in records)
+                    st.metric("🗣️ Languages", len(languages))
+                with col4:
+                    verified_records = len([r for r in records if r.get("reviewed")])
+                    st.metric("✅ Verified", verified_records)
+                    
+                # Show recent activity if available
+                if records:
+                    st.subheader("🕒 Recent Activity")
+                    recent_records = sorted(records, key=lambda x: x.get("created_at", ""), reverse=True)[:5]
+                    for record in recent_records:
+                        st.write(f"• {record.get('title', 'Untitled')} - {record.get('language', 'Unknown')}")
 
     # --- Main Page ---
 
