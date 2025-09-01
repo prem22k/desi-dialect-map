@@ -278,7 +278,8 @@ def main():
                     all_contributions = []
                     for media_type in ['audio', 'video', 'text', 'image', 'document']:
                         contributions = stats.get(f"{media_type}_contributions", [])
-                        all_contributions.extend(contributions)
+                        if contributions and isinstance(contributions, list):
+                            all_contributions.extend(contributions)
                     
                     languages = set(contrib.get("language", "unknown") for contrib in all_contributions if contrib)
                     st.metric("🗣️ Languages", len(languages))

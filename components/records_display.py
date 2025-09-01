@@ -146,7 +146,6 @@ def get_and_display_contributions(force_refresh: bool = False):
     # Check if user is admin
     try:
         is_admin = user_api.is_admin(api_auth_ui.api_auth.access_token)
-        st.write(f"🔍 DEBUG: User admin status: {is_admin}")
     except Exception as e:
         st.error(f"Error checking admin status: {str(e)}")
         is_admin = False
@@ -157,7 +156,6 @@ def get_and_display_contributions(force_refresh: bool = False):
         if not user_id:
             st.error("Could not retrieve user ID")
             return
-        st.write(f"🔍 DEBUG: User ID: {user_id}")
     except Exception as e:
         st.error(f"Error getting user ID: {str(e)}")
         return

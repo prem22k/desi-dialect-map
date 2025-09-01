@@ -87,13 +87,11 @@ class CorpusAPIRecords:
         is_admin = user_api.is_admin(api_auth.access_token) if api_auth.access_token else False
         
         if not is_admin:
-            st.warning(" Access denied: Only administrators can view all records.")
             return []
         
         # Check cache first
         current_params = {"category_id": category_id, "media_type": media_type, "skip": skip, "limit": limit}
         if not force_refresh and self._cached_records is not None and self._cache_params == current_params:
-            st.write(f" DEBUG: Using cached records ({len(self._cached_records)} records)")
             return self._cached_records
         
         # Prepare parameters
@@ -106,12 +104,9 @@ class CorpusAPIRecords:
         if media_type:
             params["media_type"] = media_type
         
-        st.write(f" DEBUG: Fetching all records (Admin access) with params: {params}")
-        
         try:
             result = self._make_request("GET", "/api/v1/records/", params=params, include_auth=True)
             if isinstance(result, list):
-                st.write(f" DEBUG: Retrieved {len(result)} records")
                 # Cache the result
                 self._cached_records = result
                 self._cache_params = current_params
@@ -133,20 +128,16 @@ class CorpusAPIRecords:
             cached_data = self._cached_contributions[cache_key]
             # Validate cached data is not None and has expected structure
             if cached_data and isinstance(cached_data, dict) and "total_contributions" in cached_data:
-                st.write(f"🔍 DEBUG: Using cached contributions for user {user_id}")
                 return cached_data
             else:
-                st.write(f"🔍 DEBUG: Invalid cached data, refreshing for user {user_id}")
                 # Remove invalid cache entry
                 del self._cached_contributions[cache_key]
         
-        st.write(f"🔍 DEBUG: Fetching contributions for user {user_id}")
         
         try:
             result = self._make_request("GET", f"/api/v1/users/{user_id}/contributions", include_auth=True)
             
             if isinstance(result, dict) and "error" not in result:
-                st.write(f"🔍 DEBUG: Retrieved contributions - Total: {result.get('total_contributions', 0)}")
                 
                 # Cache the result
                 if not hasattr(self, '_cached_contributions'):
@@ -176,16 +167,13 @@ class CorpusAPIRecords:
         # Check cache first
         cache_key = f"contributions_{user_id}_{media_type}"
         if not force_refresh and hasattr(self, '_cached_media_contributions') and cache_key in self._cached_media_contributions:
-            st.write(f"🔍 DEBUG: Using cached {media_type} contributions for user {user_id}")
             return self._cached_media_contributions[cache_key]
         
-        st.write(f"🔍 DEBUG: Fetching {media_type} contributions for user {user_id}")
         
         try:
             result = self._make_request("GET", f"/api/v1/users/{user_id}/contributions/{media_type}", include_auth=True)
             
             if isinstance(result, dict) and "error" not in result:
-                st.write(f"🔍 DEBUG: Retrieved {media_type} contributions - Total: {result.get('total_contributions', 0)}")
                 
                 # Cache the result
                 if not hasattr(self, '_cached_media_contributions'):

@@ -22,16 +22,12 @@ class UserAPI:
             "Authorization": f"Bearer {access_token}"
         }
         
-        st.write(f"🔍 DEBUG: Making GET request to: {url}")
-        st.write(f"🔍 DEBUG: Headers: {headers}")
         
         try:
             response = requests.get(url, headers=headers)
-            st.write(f"🔍 DEBUG: Response status: {response.status_code}")
-            
+                
             if response.status_code == 200:
                 user_data = response.json()
-                st.write(f"🔍 DEBUG: User profile data: {user_data}")
                 return user_data
             else:
                 error_msg = f"HTTP {response.status_code}: {response.text}"
@@ -58,7 +54,6 @@ class UserAPI:
         user_id = profile.get("id") or profile.get("user_id") or profile.get("sub")
         
         if user_id:
-            st.write(f"🔍 DEBUG: Extracted user_id: {user_id}")
             return user_id
         else:
             st.error(f"No user ID found in profile: {profile}")
