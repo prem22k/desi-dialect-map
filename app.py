@@ -95,6 +95,27 @@ def main():
             "Enter your city/town:", placeholder="e.g., Hyderabad"
         )
         
+        # Language selection from API specification
+        languages = [
+            "assamese", "bengali", "bodo", "dogri", "gujarati", "hindi", "kannada", 
+            "kashmiri", "konkani", "maithili", "malayalam", "marathi", "meitei", 
+            "nepali", "odia", "punjabi", "sanskrit", "santali", "sindhi", "tamil", 
+            "telugu", "urdu"
+        ]
+        selected_language = st.selectbox(
+            "Select Language:",
+            languages,
+            index=languages.index("hindi")  # Default to Hindi
+        )
+        
+        # Release rights selection
+        release_rights_options = ["creator", "family_or_friend", "downloaded", "NA"]
+        selected_release_rights = st.selectbox(
+            "Release Rights:",
+            release_rights_options,
+            index=1  # Default to family_or_friend
+        )
+        
         # Category selection - categories are available without authentication
         selected_category = None
         categories = api_categories.get_category_options()
@@ -124,7 +145,8 @@ def main():
 
                 if lat and lon:
                     submission_id = api_records.add_record_to_api(
-                        dialect_word, location_text, image_data, lat, lon, selected_category
+                        dialect_word, location_text, image_data, lat, lon, selected_category,
+                        selected_language, selected_release_rights
                     )
                     
                     if submission_id:

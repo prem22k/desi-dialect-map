@@ -18,7 +18,7 @@ class CorpusAPIAuth:
         self.user_info = None
     
     def _get_headers(self, include_auth: bool = True) -> Dict[str, str]:
-        """Get request headers"""
+        """Get request headers with Bearer token"""
         headers = {
             "Content-Type": "application/json",
             "accept": "application/json"

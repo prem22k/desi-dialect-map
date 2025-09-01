@@ -21,7 +21,7 @@ class CorpusAPIRecords:
         self.session = requests.Session()
     
     def _get_headers(self, include_auth: bool = True) -> Dict[str, str]:
-        """Get request headers"""
+        """Get request headers with Bearer token"""
         headers = {
             "Content-Type": "application/json",
             "accept": "application/json"
@@ -202,19 +202,35 @@ class CorpusAPIRecords:
     
     def upload_file_chunk(self, chunk_data: bytes, filename: str, chunk_index: int,
                          total_chunks: int, upload_uuid: str) -> Dict[str, Any]:
-        """Upload a single chunk of a file"""
-        files = {
-            "chunk": (filename, chunk_data, "application/octet-stream")
-        }
+        """Upload a single chunk of a file as base64"""
+        # Convert chunk to base64
+        chunk_base64 = base64.b64encode(chunk_data).decode('utf-8')
+        
         data = {
+            "chunk": chunk_base64,
             "filename": filename,
             "chunk_index": str(chunk_index),
             "total_chunks": str(total_chunks),
             "upload_uuid": upload_uuid
         }
         
-        result = self._make_request("POST", "/records/upload/chunk", data=data, files=files)
-        return result
+        # Use form data instead of files for base64 upload
+        url = f"{self.base_url}/records/upload/chunk"
+        headers = {
+            "accept": "application/json",
+            "Authorization": f"Bearer {api_auth.access_token}"
+        }
+        
+        try:
+            response = self.session.post(url, headers=headers, data=data)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            st.error(f"Chunk upload failed: {str(e)}")
+            return {"error": str(e)}
+        except json.JSONDecodeError as e:
+            st.error(f"Invalid JSON response: {str(e)}")
+            return {"error": "Invalid response format"}
     
     def finalize_upload(self, title: str, description: str, category_id: str,
                        media_type: str, upload_uuid: str, filename: str, total_chunks: int,
@@ -222,14 +238,18 @@ class CorpusAPIRecords:
                        release_rights: str = "family_or_friend", use_uid_filename: bool = False) -> Optional[Dict[str, Any]]:
         """Finalize chunked upload and create a record using form data"""
         
-        # Use form data instead of JSON for the upload endpoint
+        if not api_auth.user_info or not api_auth.user_info.get("user_id"):
+            st.error("User ID not available. Please login again.")
+            return {"error": "User not authenticated"}
+        
+        # Prepare all required form data parameters
         data = {
-            "upload_uuid": upload_uuid,
             "title": title,
-            "description": description,
+            "description": description if description else "",
             "category_id": category_id,
-            "user_id": api_auth.user_info.get("user_id") if api_auth.user_info else None,
+            "user_id": api_auth.user_info.get("user_id"),
             "media_type": media_type,
+            "upload_uuid": upload_uuid,
             "filename": filename,
             "total_chunks": str(total_chunks),
             "release_rights": release_rights,
@@ -237,16 +257,18 @@ class CorpusAPIRecords:
             "use_uid_filename": str(use_uid_filename).lower()
         }
         
+        # Add coordinates if provided
         if latitude is not None:
             data["latitude"] = str(latitude)
         if longitude is not None:
             data["longitude"] = str(longitude)
         
-        # Make request with form data instead of JSON
+        # Make request with form data and Bearer token
         url = f"{self.base_url}/records/upload"
-        headers = {"accept": "application/json"}
-        if api_auth.access_token:
-            headers["Authorization"] = f"Bearer {api_auth.access_token}"
+        headers = {
+            "accept": "application/json",
+            "Authorization": f"Bearer {api_auth.access_token}"
+        }
         
         try:
             response = self.session.post(url, headers=headers, data=data)
@@ -260,7 +282,8 @@ class CorpusAPIRecords:
             return {"error": "Invalid response format"}
     
     def upload_image_record(self, image_data: bytes, title: str, description: str,
-                          location: Dict[str, float], language: str, category_id: str) -> Optional[Dict[str, Any]]:
+                          location: Dict[str, float], language: str, category_id: str,
+                          release_rights: str = "family_or_friend") -> Optional[Dict[str, Any]]:
         """Upload an image record with chunked upload"""
         try:
             # Generate upload UUID
@@ -303,7 +326,8 @@ class CorpusAPIRecords:
                 total_chunks=total_chunks,
                 language=language,
                 latitude=location.get("latitude"),
-                longitude=location.get("longitude")
+                longitude=location.get("longitude"),
+                release_rights=release_rights
             )
             
         except Exception as e:
@@ -397,7 +421,8 @@ def get_random_record() -> Optional[Dict[str, Any]]:
 
 
 def add_record_to_api(dialect_word: str, location_text: str, image_data: bytes,
-                     latitude: float, longitude: float, category_id: Optional[str] = None) -> Optional[str]:
+                     latitude: float, longitude: float, category_id: Optional[str] = None,
+                     language: str = "hindi", release_rights: str = "family_or_friend") -> Optional[str]:
     """Add a new record to the API"""
     if not api_auth.is_authenticated():
         st.error("Please login to submit records")
@@ -407,13 +432,10 @@ def add_record_to_api(dialect_word: str, location_text: str, image_data: bytes,
     if not category_id:
         default_category = get_default_category()
         if default_category:
-            category_id = default_category.get("id")
+            category_id = default_category.get("id") or default_category.get("category_id")
         else:
             st.error("No category available. Please create a category first.")
             return None
-    
-    # Default language
-    language = "hindi"  # In a full implementation, this could be detected or selected
     
     result = api_records.upload_image_record(
         image_data=image_data,
@@ -421,7 +443,8 @@ def add_record_to_api(dialect_word: str, location_text: str, image_data: bytes,
         description=location_text,
         location={"latitude": latitude, "longitude": longitude},
         language=language,
-        category_id=category_id
+        category_id=category_id,
+        release_rights=release_rights
     )
     
     if result:
