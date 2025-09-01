@@ -79,20 +79,24 @@ class CorpusAPIRecords:
         return self.get_records(skip=skip, limit=limit)
     
     def get_records(self, category_id: Optional[str] = None, user_id: Optional[str] = None,
-                   media_type: Optional[str] = None, skip: int = 0, limit: int = 100) -> List[Dict[str, Any]]:
-        """Get records with Bearer token - returns only user's own data for normal users"""
+                   media_type: Optional[str] = None, skip: int = 0, limit: int = 100, 
+                   force_refresh: bool = False) -> List[Dict[str, Any]]:
+        """Get records with Bearer token - returns user's own data or all data based on role"""
         if not api_auth.access_token:
             st.warning("Authentication required to fetch records")
             return []
         
-        # Check cache to avoid redundant API calls
-        current_params = {"category_id": category_id, "media_type": media_type, "skip": skip, "limit": limit}
-        if self._cached_records is not None and self._cache_params == current_params:
+        # Check user role to determine data access
+        from api_user import user_api
+        is_admin = user_api.is_admin(api_auth.access_token)
+        
+        # Check cache to avoid redundant API calls (unless force refresh)
+        current_params = {"category_id": category_id, "media_type": media_type, "skip": skip, "limit": limit, "is_admin": is_admin}
+        if not force_refresh and self._cached_records is not None and self._cache_params == current_params:
             st.write(f"🔍 DEBUG: Using cached records ({len(self._cached_records)} records)")
             return self._cached_records
         
-        # With Bearer token, API returns only authenticated user's records
-        # user_id parameter is ignored as API infers from Bearer token
+        # Prepare parameters
         params = {
             "skip": skip,
             "limit": limit
@@ -102,7 +106,10 @@ class CorpusAPIRecords:
         if media_type:
             params["media_type"] = media_type
         
-        st.write(f"🔍 DEBUG: Fetching records with Bearer token, params: {params}")
+        # For admins, we can add additional parameters if the API supports it
+        # For normal users, Bearer token restricts to their own data
+        
+        st.write(f"🔍 DEBUG: Fetching records (Admin: {is_admin}) with params: {params}")
         
         try:
             result = self._make_request("GET", "/api/v1/records/", params=params, include_auth=True)

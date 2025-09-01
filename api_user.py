@@ -63,6 +63,22 @@ class UserAPI:
         else:
             st.error(f"No user ID found in profile: {profile}")
             return None
+    
+    def is_admin(self, access_token: str) -> bool:
+        """Check if user has admin role"""
+        profile = self.get_user_profile(access_token)
+        
+        if "error" in profile:
+            return False
+            
+        # Check for admin role in various possible fields
+        roles = profile.get("roles", [])
+        if isinstance(roles, list):
+            return "admin" in [role.lower() if isinstance(role, str) else str(role).lower() for role in roles]
+        
+        # Check other possible admin indicators
+        is_admin = profile.get("is_admin", False) or profile.get("admin", False)
+        return bool(is_admin)
 
 
 # Global instance
