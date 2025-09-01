@@ -116,23 +116,26 @@ def main():
             index=1  # Default to family_or_friend
         )
         
-        # Category selection - categories are available without authentication
+        # Category selection - requires authentication and Bearer token
         selected_category = None
-        categories = api_categories.get_category_options()
-        if categories and len(categories) > 1:  # More than just "Select a category"
-            category_names = [cat[0] for cat in categories]
-            category_ids = [cat[1] for cat in categories]
-            
-            selected_category_name = st.selectbox(
-                "Choose a category:",
-                category_names,
-                index=0
-            )
-            
-            if selected_category_name != "Select a category":
-                selected_category = category_ids[category_names.index(selected_category_name)]
+        if api_auth_ui.api_auth.is_authenticated():
+            categories = api_categories.get_category_options()
+            if categories and len(categories) > 1:  # More than just "Select a category"
+                category_names = [cat[0] for cat in categories]
+                category_ids = [cat[1] for cat in categories]
+                
+                selected_category_name = st.selectbox(
+                    "Choose a category:",
+                    category_names,
+                    index=0
+                )
+                
+                if selected_category_name != "Select a category":
+                    selected_category = category_ids[category_names.index(selected_category_name)]
+            else:
+                st.info("No categories available")
         else:
-            st.info("No categories available")
+            st.info("Please login to view categories")
 
         if st.button("Put my word on the map!", use_container_width=True):
             if uploaded_image and dialect_word and location_text:
@@ -275,19 +278,27 @@ def main():
         state_filter = st.selectbox("Filter by State:", states)
     with col3:
         selected_category_filter = None
-        categories = api_categories.get_category_options()
-        if categories and len(categories) > 1:  # More than just "Select a category"
-            category_names = [cat[0] for cat in categories]
-            category_ids = [cat[1] for cat in categories]
-            
-            selected_category_filter_name = st.selectbox(
+        if api_auth_ui.api_auth.is_authenticated():
+            categories = api_categories.get_category_options()
+            if categories and len(categories) > 1:  # More than just "Select a category"
+                category_names = [cat[0] for cat in categories]
+                category_ids = [cat[1] for cat in categories]
+                
+                selected_category_filter_name = st.selectbox(
+                    "Filter by Category:",
+                    ["All Categories"] + category_names[1:],  # Skip "Select a category"
+                    index=0
+                )
+                
+                if selected_category_filter_name != "All Categories":
+                    selected_category_filter = category_ids[category_names.index(selected_category_filter_name)]
+        else:
+            st.selectbox(
                 "Filter by Category:",
-                ["All Categories"] + category_names[1:],  # Skip "Select a category"
-                index=0
+                ["Login to view categories"],
+                index=0,
+                disabled=True
             )
-            
-            if selected_category_filter_name != "All Categories":
-                selected_category_filter = category_ids[category_names.index(selected_category_filter_name)]
 
     # Get records from API
     if api_auth_ui.api_auth.is_authenticated():

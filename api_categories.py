@@ -16,7 +16,7 @@ class CorpusAPICategories:
         self.session = requests.Session()
     
     def _get_headers(self, include_auth: bool = True) -> Dict[str, str]:
-        """Get request headers"""
+        """Get request headers with Bearer token"""
         headers = {
             "Content-Type": "application/json",
             "accept": "application/json"
@@ -47,8 +47,8 @@ class CorpusAPICategories:
             return {"error": "Invalid response format"}
     
     def get_categories(self) -> List[Dict[str, Any]]:
-        """Get all categories"""
-        result = self._make_request("GET", "/categories/", include_auth=False)
+        """Get all categories with Bearer token authentication"""
+        result = self._make_request("GET", "/categories/", include_auth=True)
         if isinstance(result, list):
             return result
         elif isinstance(result, dict) and "categories" in result:
@@ -61,13 +61,19 @@ api_categories = CorpusAPICategories()
 
 
 def get_categories_cached() -> List[Dict[str, Any]]:
-    """Get all categories from API (cached)"""
-    # Categories endpoint might not require authentication
-    try:
-        return api_categories.get_categories()
-    except Exception as e:
-        st.error(f"Failed to fetch categories: {str(e)}")
+    """Get all categories from API (cached with Bearer token)"""
+    if not api_auth.is_authenticated():
         return []
+    
+    # Use session state to cache categories for the entire session
+    if "cached_categories" not in st.session_state:
+        try:
+            st.session_state.cached_categories = api_categories.get_categories()
+        except Exception as e:
+            st.error(f"Failed to fetch categories: {str(e)}")
+            st.session_state.cached_categories = []
+    
+    return st.session_state.cached_categories
 
 
 def get_published_categories() -> List[Dict[str, Any]]:
@@ -93,7 +99,7 @@ def get_category_by_id(category_id: str) -> Optional[Dict[str, Any]]:
     
     categories = get_categories_cached()
     for category in categories:
-        if category.get("id") == category_id:
+        if category.get("id") == category_id or category.get("category_id") == category_id:
             return category
     return None
 
