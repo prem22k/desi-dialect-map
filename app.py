@@ -184,6 +184,7 @@ def main():
                     format_func=lambda x: category_options.get(x, "Unknown"),
                     index=0 if category_options else None,
                     help="Choose the most appropriate category for your dialect word"
+                )
                 st.info(f"Selected: {category_options.get(selected_category, 'None')}")
             else:
                 st.warning("⚠️ No categories available. A default category will be used.")
