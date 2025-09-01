@@ -240,19 +240,17 @@ class CorpusAPIRecords:
     
     def upload_file_chunk(self, chunk_data: bytes, filename: str, chunk_index: int,
                          total_chunks: int, upload_uuid: str) -> Dict[str, Any]:
-        """Upload a single chunk of a file as base64"""
-        # Convert chunk to base64
-        chunk_base64 = base64.b64encode(chunk_data).decode('utf-8')
+        """Upload a single chunk of a file using multipart/form-data"""
         
-        data = {
-            "chunk": chunk_base64,
-            "filename": filename,
-            "chunk_index": str(chunk_index),
-            "total_chunks": str(total_chunks),
-            "upload_uuid": upload_uuid
+        # Prepare multipart form data as per API spec
+        files = {
+            'chunk': ('chunk', chunk_data, 'application/octet-stream'),
+            'filename': (None, filename),
+            'chunk_index': (None, str(chunk_index)),
+            'total_chunks': (None, str(total_chunks)),
+            'upload_uuid': (None, upload_uuid)
         }
         
-        # Use form data instead of files for base64 upload
         url = f"{self.base_url}/records/upload/chunk"
         headers = {
             "accept": "application/json",
@@ -260,11 +258,13 @@ class CorpusAPIRecords:
         }
         
         try:
-            response = self.session.post(url, headers=headers, data=data)
+            response = self.session.post(url, headers=headers, files=files)
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
             st.error(f"Chunk upload failed: {str(e)}")
+            if hasattr(e.response, 'text'):
+                st.error(f"Response: {e.response.text}")
             return {"error": str(e)}
         except json.JSONDecodeError as e:
             st.error(f"Invalid JSON response: {str(e)}")
@@ -274,13 +274,13 @@ class CorpusAPIRecords:
                        media_type: str, upload_uuid: str, filename: str, total_chunks: int,
                        language: str, latitude: Optional[float] = None, longitude: Optional[float] = None,
                        release_rights: str = "family_or_friend", use_uid_filename: bool = False) -> Optional[Dict[str, Any]]:
-        """Finalize chunked upload and create a record using form data"""
+        """Finalize chunked upload and create a record using application/x-www-form-urlencoded"""
         
         if not api_auth.user_info or not api_auth.user_info.get("user_id"):
             st.error("User ID not available. Please login again.")
             return {"error": "User not authenticated"}
         
-        # Prepare all required form data parameters
+        # Prepare all required form data parameters as per API spec
         data = {
             "title": title,
             "description": description if description else "",
@@ -289,23 +289,24 @@ class CorpusAPIRecords:
             "media_type": media_type,
             "upload_uuid": upload_uuid,
             "filename": filename,
-            "total_chunks": str(total_chunks),
+            "total_chunks": total_chunks,  # Keep as integer
             "release_rights": release_rights,
             "language": language,
-            "use_uid_filename": str(use_uid_filename).lower()
+            "use_uid_filename": use_uid_filename  # Keep as boolean
         }
         
-        # Add coordinates if provided
+        # Add coordinates if provided (as numbers, not strings)
         if latitude is not None:
-            data["latitude"] = str(latitude)
+            data["latitude"] = latitude
         if longitude is not None:
-            data["longitude"] = str(longitude)
+            data["longitude"] = longitude
         
         # Make request with form data and Bearer token
         url = f"{self.base_url}/records/upload"
         headers = {
             "accept": "application/json",
-            "Authorization": f"Bearer {api_auth.access_token}"
+            "Authorization": f"Bearer {api_auth.access_token}",
+            "Content-Type": "application/x-www-form-urlencoded"
         }
         
         try:
@@ -314,6 +315,8 @@ class CorpusAPIRecords:
             return response.json()
         except requests.exceptions.RequestException as e:
             st.error(f"Upload finalization failed: {str(e)}")
+            if hasattr(e.response, 'text'):
+                st.error(f"Response: {e.response.text}")
             return {"error": str(e)}
         except json.JSONDecodeError as e:
             st.error(f"Invalid JSON response: {str(e)}")
