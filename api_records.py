@@ -7,7 +7,7 @@ from typing import Optional, Dict, Any, List
 from PIL import Image
 import base64
 from api_auth import api_auth
-from api_categories import default_category
+from api_categories import get_default_category
 
 # API Configuration
 API_BASE_URL = "https://api.corpus.swecha.org"
@@ -201,49 +201,63 @@ class CorpusAPIRecords:
         return []
     
     def upload_file_chunk(self, chunk_data: bytes, filename: str, chunk_index: int,
-                         total_chunks: int, upload_uuid: str) -> bool:
+                         total_chunks: int, upload_uuid: str) -> Dict[str, Any]:
         """Upload a single chunk of a file"""
         files = {
             "chunk": (filename, chunk_data, "application/octet-stream")
         }
         data = {
             "filename": filename,
-            "chunk_index": chunk_index,
-            "total_chunks": total_chunks,
+            "chunk_index": str(chunk_index),
+            "total_chunks": str(total_chunks),
             "upload_uuid": upload_uuid
         }
         
         result = self._make_request("POST", "/records/upload/chunk", data=data, files=files)
-        return "error" not in result
+        return result
     
     def finalize_upload(self, title: str, description: str, category_id: str,
                        media_type: str, upload_uuid: str, filename: str, total_chunks: int,
                        language: str, latitude: Optional[float] = None, longitude: Optional[float] = None,
-                       release_rights: str = "creator", use_uid_filename: bool = False) -> Optional[Dict[str, Any]]:
-        """Finalize chunked upload and create a record"""
+                       release_rights: str = "family_or_friend", use_uid_filename: bool = False) -> Optional[Dict[str, Any]]:
+        """Finalize chunked upload and create a record using form data"""
+        
+        # Use form data instead of JSON for the upload endpoint
         data = {
+            "upload_uuid": upload_uuid,
             "title": title,
             "description": description,
             "category_id": category_id,
             "user_id": api_auth.user_info.get("user_id") if api_auth.user_info else None,
             "media_type": media_type,
-            "upload_uuid": upload_uuid,
             "filename": filename,
-            "total_chunks": total_chunks,
+            "total_chunks": str(total_chunks),
             "release_rights": release_rights,
             "language": language,
-            "use_uid_filename": use_uid_filename
+            "use_uid_filename": str(use_uid_filename).lower()
         }
         
         if latitude is not None:
-            data["latitude"] = latitude
+            data["latitude"] = str(latitude)
         if longitude is not None:
-            data["longitude"] = longitude
+            data["longitude"] = str(longitude)
         
-        result = self._make_request("POST", "/records/upload", data=data)
-        if "error" not in result:
-            return result
-        return None
+        # Make request with form data instead of JSON
+        url = f"{self.base_url}/records/upload"
+        headers = {"accept": "application/json"}
+        if api_auth.access_token:
+            headers["Authorization"] = f"Bearer {api_auth.access_token}"
+        
+        try:
+            response = self.session.post(url, headers=headers, data=data)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            st.error(f"Upload finalization failed: {str(e)}")
+            return {"error": str(e)}
+        except json.JSONDecodeError as e:
+            st.error(f"Invalid JSON response: {str(e)}")
+            return {"error": "Invalid response format"}
     
     def upload_image_record(self, image_data: bytes, title: str, description: str,
                           location: Dict[str, float], language: str, category_id: str) -> Optional[Dict[str, Any]]:
@@ -270,8 +284,12 @@ class CorpusAPIRecords:
             
             # Upload chunks
             for i, chunk in enumerate(chunks):
-                if not self.upload_file_chunk(chunk, filename, i, total_chunks, upload_uuid):
-                    st.error(f"Failed to upload chunk {i + 1}/{total_chunks}")
+                chunk_result = self.upload_file_chunk(chunk, filename, i, total_chunks, upload_uuid)
+                if "error" in chunk_result:
+                    st.error(f"Failed to upload chunk {i + 1}/{total_chunks}: {chunk_result.get('error')}")
+                    return None
+                elif "message" not in chunk_result:
+                    st.error(f"Unexpected response for chunk {i + 1}/{total_chunks}")
                     return None
             
             # Finalize upload
@@ -320,17 +338,33 @@ def get_records_for_map() -> List[Dict[str, Any]]:
         # Transform records to match our app's expected format
         transformed_records = []
         for record in records:
-            if record.get("location") and record.get("location").get("latitude") and record.get("location").get("longitude"):
+            # Handle both nested location object and direct lat/lng fields
+            latitude = None
+            longitude = None
+            
+            if record.get("location"):
+                latitude = record["location"].get("latitude")
+                longitude = record["location"].get("longitude")
+            else:
+                # Check for direct latitude/longitude fields
+                latitude = record.get("latitude")
+                longitude = record.get("longitude")
+            
+            if latitude and longitude:
                 transformed_records.append({
                     "id": record.get("uid"),
                     "dialect_word": record.get("title"),
                     "location_text": record.get("description", ""),
-                    "latitude": record.get("location", {}).get("latitude"),
-                    "longitude": record.get("location", {}).get("longitude"),
+                    "latitude": latitude,
+                    "longitude": longitude,
                     "image_path": record.get("file_url"),
                     "is_verified": record.get("reviewed", False),
                     "user_id": record.get("user_id"),
-                    "created_at": record.get("created_at")
+                    "created_at": record.get("created_at"),
+                    "language": record.get("language"),
+                    "media_type": record.get("media_type"),
+                    "release_rights": record.get("release_rights"),
+                    "status": record.get("status")
                 })
         
         return transformed_records
@@ -352,7 +386,9 @@ def get_random_record() -> Optional[Dict[str, Any]]:
             return {
                 "id": record.get("uid"),
                 "dialect_word": record.get("title"),
-                "location_text": record.get("description", "")
+                "location_text": record.get("description", ""),
+                "language": record.get("language"),
+                "status": record.get("status")
             }
         return None
     except Exception as e:

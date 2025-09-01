@@ -40,13 +40,8 @@ def show_login_interface():
     """Show login interface"""
     st.subheader("Login to API")
     
-    # Login method selection
-    login_method = st.radio("Login Method", ["Password", "OTP"], key="login_method")
-    
-    if login_method == "Password":
-        show_password_login()
-    else:
-        show_otp_login()
+    # Use password login by default (as per API spec)
+    show_password_login()
 
 def show_password_login():
     """Show password-based login"""
@@ -144,12 +139,15 @@ def show_signup_interface():
     phone = st.text_input("Phone Number", placeholder="+919876543210", key="signup_phone")
     name = st.text_input("Full Name", placeholder="Your Name", key="signup_name")
     email = st.text_input("Email", placeholder="your.email@example.com", key="signup_email")
+    gender = st.selectbox("Gender", ["male", "female", "other"], key="signup_gender")
+    date_of_birth = st.date_input("Date of Birth", key="signup_dob")
+    place = st.text_input("Place", placeholder="Your city/state", key="signup_place")
     password = st.text_input("Password", type="password", key="signup_password")
     confirm_password = st.text_input("Confirm Password", type="password", key="signup_confirm_password")
     consent = st.checkbox("I consent to data collection", value=True, key="signup_consent")
     
-    if st.button("Send Signup OTP", use_container_width=True):
-        if phone and name and email and password and confirm_password and consent:
+    if st.button("Create Account", use_container_width=True):
+        if phone and name and email and password and confirm_password and place and consent:
             # Validation
             if not validate_phone_number(phone):
                 st.error("Please enter a valid Indian phone number")
@@ -164,63 +162,27 @@ def show_signup_interface():
                 st.error("Password must be at least 8 characters long")
                 return
             
-            # Store signup data
-            st.session_state.api_auth_signup_data = {
-                "phone": phone,
-                "name": name,
-                "email": email,
-                "password": password,
-                "consent": consent
-            }
+            # Create account directly
+            result = api_auth.signup_user(
+                phone=phone,
+                name=name,
+                email=email,
+                gender=gender,
+                date_of_birth=str(date_of_birth),
+                place=place,
+                password=password,
+                has_given_consent=consent
+            )
             
-            result = api_auth.send_signup_otp(phone)
-            if "status" in result and result["status"] == "success":
-                st.session_state.api_auth_phone = phone
-                st.session_state.api_auth_otp_sent = True
-                st.success("OTP sent successfully!")
+            if "access_token" in result:
+                save_auth_to_session()
+                st.success("Account created and logged in successfully!")
                 st.rerun()
             else:
-                st.error("Failed to send OTP. Please try again.")
+                error_msg = result.get("error", "Failed to create account. Please try again.")
+                st.error(f"Signup failed: {error_msg}")
         else:
             st.warning("Please fill all fields and give consent")
-    
-    # Show OTP verification if OTP was sent
-    if st.session_state.api_auth_otp_sent and st.session_state.api_auth_phone == phone:
-        st.markdown("---")
-        st.subheader("Verify OTP")
-        
-        otp = st.text_input("Enter OTP", placeholder="123456", key="signup_otp_code")
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            if st.button("Verify & Create Account", use_container_width=True):
-                if otp and st.session_state.api_auth_signup_data:
-                    data = st.session_state.api_auth_signup_data
-                    result = api_auth.verify_signup_otp(
-                        data["phone"],
-                        otp,
-                        data["name"],
-                        data["email"],
-                        data["password"],
-                        data["consent"]
-                    )
-                    if "access_token" in result:
-                        save_auth_to_session()
-                        st.success("Account created successfully!")
-                        st.rerun()
-                    else:
-                        st.error("Failed to create account. Please try again.")
-                else:
-                    st.warning("Please enter OTP")
-        
-        with col2:
-            if st.button("Resend OTP", use_container_width=True):
-                result = api_auth.resend_signup_otp(st.session_state.api_auth_phone)
-                if "status" in result and result["status"] == "success":
-                    st.success("OTP resent successfully!")
-                else:
-                    st.error("Failed to resend OTP")
 
 def show_authenticated_user():
     """Show interface for authenticated users"""

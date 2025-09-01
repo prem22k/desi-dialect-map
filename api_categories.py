@@ -48,9 +48,11 @@ class CorpusAPICategories:
     
     def get_categories(self) -> List[Dict[str, Any]]:
         """Get all categories"""
-        result = self._make_request("GET", "/categories/")
+        result = self._make_request("GET", "/categories/", include_auth=False)
         if isinstance(result, list):
             return result
+        elif isinstance(result, dict) and "categories" in result:
+            return result["categories"]
         return []
 
 
@@ -60,9 +62,7 @@ api_categories = CorpusAPICategories()
 
 def get_categories_cached() -> List[Dict[str, Any]]:
     """Get all categories from API (cached)"""
-    if not api_auth.is_authenticated():
-        return []
-    
+    # Categories endpoint might not require authentication
     try:
         return api_categories.get_categories()
     except Exception as e:
@@ -73,7 +73,17 @@ def get_categories_cached() -> List[Dict[str, Any]]:
 def get_published_categories() -> List[Dict[str, Any]]:
     """Get only published categories"""
     categories = get_categories_cached()
-    return [cat for cat in categories if cat.get("published", False)]
+    # If no published field exists, assume all categories are published
+    if not categories:
+        return []
+    
+    # Check if any category has a 'published' field
+    has_published_field = any("published" in cat for cat in categories)
+    if has_published_field:
+        return [cat for cat in categories if cat.get("published", False)]
+    else:
+        # If no published field, return all categories
+        return categories
 
 
 def get_category_by_id(category_id: str) -> Optional[Dict[str, Any]]:
@@ -110,7 +120,16 @@ def get_category_options() -> List[tuple]:
     options = [("Select a category", None)]
     
     for category in categories:
-        options.append((category.get("title", category.get("name", "Unknown")), category.get("id")))
+        # Use different field names based on API response structure
+        display_name = (
+            category.get("title") or 
+            category.get("name") or 
+            category.get("category_name") or 
+            "Unknown"
+        )
+        category_id = category.get("id") or category.get("category_id")
+        if category_id:
+            options.append((display_name, category_id))
     
     return options
 

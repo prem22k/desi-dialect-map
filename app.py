@@ -95,10 +95,10 @@ def main():
             "Enter your city/town:", placeholder="e.g., Hyderabad"
         )
         
-        # Category selection
+        # Category selection - categories are available without authentication
         selected_category = None
-        if api_auth_ui.api_auth.is_authenticated():
-            categories = api_categories.get_category_options()
+        categories = api_categories.get_category_options()
+        if categories and len(categories) > 1:  # More than just "Select a category"
             category_names = [cat[0] for cat in categories]
             category_ids = [cat[1] for cat in categories]
             
@@ -111,7 +111,7 @@ def main():
             if selected_category_name != "Select a category":
                 selected_category = category_ids[category_names.index(selected_category_name)]
         else:
-            st.info("Please login to select categories")
+            st.info("No categories available")
 
         if st.button("Put my word on the map!", use_container_width=True):
             if uploaded_image and dialect_word and location_text:
@@ -253,8 +253,8 @@ def main():
         state_filter = st.selectbox("Filter by State:", states)
     with col3:
         selected_category_filter = None
-        if api_auth_ui.api_auth.is_authenticated():
-            categories = api_categories.get_category_options()
+        categories = api_categories.get_category_options()
+        if categories and len(categories) > 1:  # More than just "Select a category"
             category_names = [cat[0] for cat in categories]
             category_ids = [cat[1] for cat in categories]
             

@@ -87,6 +87,11 @@ class CorpusAPIAuth:
         
         if "access_token" in result:
             self.access_token = result["access_token"]
+            self.user_info = {
+                "user_id": result.get("user_id"),
+                "phone_number": result.get("phone"),
+                "roles": result.get("roles", [])
+            }
         
         return result
     
@@ -95,26 +100,31 @@ class CorpusAPIAuth:
         data = {"phone_number": phone_number}
         return self._make_request("POST", "/auth/signup/send-otp", data, include_auth=False)
     
-    def verify_signup_otp(self, phone_number: str, otp_code: str, name: str, 
-                         email: str, password: str, has_given_consent: bool = True) -> Dict[str, Any]:
-        """Verify OTP and create new user account"""
+    def signup_user(self, phone: str, name: str, email: str, gender: str, 
+                   date_of_birth: str, place: str, password: str, 
+                   role_ids: list = None, has_given_consent: bool = True) -> Dict[str, Any]:
+        """Create new user account directly"""
+        if role_ids is None:
+            role_ids = [2]  # Default role
+            
         data = {
-            "phone_number": phone_number,
-            "otp_code": otp_code,
+            "phone": phone,
             "name": name,
             "email": email,
+            "gender": gender,
+            "date_of_birth": date_of_birth,
+            "place": place,
             "password": password,
+            "role_ids": role_ids,
             "has_given_consent": has_given_consent
         }
-        result = self._make_request("POST", "/auth/signup/verify-otp", data, include_auth=False)
+        result = self._make_request("POST", "/users/", data, include_auth=False)
         
-        if "access_token" in result:
-            self.access_token = result["access_token"]
-            self.user_info = {
-                "user_id": result.get("user_id"),
-                "phone_number": result.get("phone_number"),
-                "roles": result.get("roles", [])
-            }
+        # After successful signup, automatically login
+        if "id" in result or "user_id" in result:
+            login_result = self.login_with_password(phone, password)
+            if "access_token" in login_result:
+                return login_result
         
         return result
     
