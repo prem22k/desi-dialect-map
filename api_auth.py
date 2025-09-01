@@ -193,17 +193,12 @@ class CorpusAPIAuth:
         """Get current user ID from Bearer token"""
         import streamlit as st
         
-        # Check if we have cached user_info with 'id' field
-        if self.user_info and self.user_info.get("id"):
-            st.write(f"🔍 DEBUG: Using cached user_id: {self.user_info.get('id')}")
-            return self.user_info.get("id")
-        
-        # Fetch user info from /auth/me endpoint
-        st.write("🔍 DEBUG: Fetching user info from /auth/me")
+        # Always fetch fresh user info from /auth/me endpoint to get correct 'id' field
+        st.write("🔍 DEBUG: Fetching fresh user info from /auth/me")
         user_data = self.get_user_info()
         
         if "error" not in user_data and "id" in user_data:
-            # Update cached user_info
+            # Update cached user_info with fresh data
             self.user_info = user_data
             user_id = user_data["id"]
             st.write(f"🔍 DEBUG: Retrieved user_id: {user_id}")
