@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Migrated backend to **Indic Corpus Collections API**.
+- Removed local SQLite dependency.
+- Updated documentation to reflect team collaboration and API-first architecture.
+- Replaced `DEPLOYMENT_SIMPLE.md` with `DEPLOYMENT_GUIDE.md`.
+
 ## [1.0.0] - 2025-08-10
 
 ### Added
