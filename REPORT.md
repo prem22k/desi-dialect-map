@@ -29,9 +29,9 @@ The primary AI value is in the unique **corpus** we are creating. Our data-focus
 ### **Technology Stack**
 
 - **Framework:** Streamlit
-- **Deployment:** Streamlit Cloud (Hugging Face Spaces alternative)
+- **Deployment:** Streamlit Cloud
 - **Language:** Python
-- **Database:** SQLite (local storage for MVP)
+- **Backend:** Indic Corpus Collections API (RESTful)
 - **Version Control:** GitLab with comprehensive CI/CD
 - **Development Tools:** VSCode with team-standardized configuration
 
@@ -47,7 +47,11 @@ The primary AI value is in the unique **corpus** we are creating. Our data-focus
 ```
 desi-dialect-map/
 ├── app.py                 # Main Streamlit application
-├── database.py            # Database operations and schema
+├── api_auth.py            # API authentication handler
+├── api_records.py         # Record management via API
+├── api_categories.py      # Category management
+├── config/                # Configuration settings
+```
 ├── auth_ui.py             # Authentication system (optional)
 ├── requirements.txt       # Python dependencies
 ├── pyproject.toml         # Project configuration

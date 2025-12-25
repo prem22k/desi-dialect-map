@@ -1,102 +1,34 @@
 # Data Privacy & Security Guide
 
-## 🔒 **Current Data Accessibility Status**
+## 🔒 **Authentication & Data Security**
 
-### **⚠️ IMPORTANT: Your app currently has NO privacy controls by default!**
+The **Desi Dialect Map** integrates with the **Indic Corpus Collections API** to ensure secure data handling and user authentication.
 
-**What this means:**
+### **Authentication**
 
-- **All submissions are publicly visible** to anyone who visits your app
-- **All images are publicly accessible**
-- **No user authentication** - anyone can submit content
-- **No data ownership** - users can't claim or control their submissions
-- **No content moderation** - no way to remove inappropriate content
+-   **User Accounts:** Users must log in to contribute data. Authentication is handled via the Indic Corpus Collections API using OTP (One-Time Password) verification.
+-   **Secure Tokens:** The application uses secure Bearer tokens to authenticate API requests. These tokens are stored in the session state and are not persisted to disk.
 
-## 🛡️ **Privacy Features I've Added (Optional)**
+### **Data Handling**
 
-I've created an **optional authentication system** that you can integrate to add privacy controls:
+-   **Data Storage:** All submitted data (images, text, location) is stored securely in the Indic Corpus Collections API database. The application does not store user data locally.
+-   **Public Visibility:**
+    -   **Map & Gallery:** Submissions are visualized on the public map and gallery to foster community learning.
+    -   **Attribution:** Submissions are linked to the user's profile (if applicable) or anonymized based on API settings.
 
-### **✅ What the Auth System Provides:**
+### **Privacy Controls**
 
-1. **User Accounts**
+-   **User Consent:** Users provide consent when submitting data, acknowledging that it will be part of the public corpus.
+-   **Data Ownership:** Users retain rights to their contributions as per the terms of the Indic Corpus Collections API.
 
-   - Users can create accounts with username/password
-   - Passwords are securely hashed (SHA-256)
-   - No email required (optional)
+## 🛡️ **Best Practices**
 
-2. **Privacy Controls**
+-   **Do not upload sensitive personal information.**
+-   **Ensure you have the right to share the images you upload.**
+-   **Respect the privacy of others when taking photos of public scenes.**
 
-   - Users can make submissions **public** or **private**
-   - Private submissions are only visible to the owner
-   - Public submissions are visible to everyone
+For more details on the API's privacy policy, please refer to the Indic Corpus Collections documentation.
 
-3. **Data Ownership**
-
-   - Users can only modify/delete their own submissions
-   - Users can see all their submissions in one place
-   - Users can toggle privacy settings anytime
-
-4. **Content Moderation**
-   - Users can delete their own submissions
-   - Users can change privacy settings
-   - Better control over what's publicly visible
-
-## 🚀 **How to Enable Privacy Controls**
-
-### **Option 1: Quick Integration (Recommended)**
-
-1. **Import the auth module** in your `app.py`:
-
-```python
-import auth_ui as auth
-```
-
-2. **Add authentication to your sidebar**:
-
-```python
-# In your sidebar
-if not auth.check_auth():
-    auth.show_login_form()
-else:
-    auth.show_user_info()
-```
-
-3. **Update submission calls** to include user ID:
-
-```python
-# Before (no privacy)
-submission_id = db.add_submission(conn, dialect_word, location_text, image_data)
-
-# After (with privacy)
-user = auth.get_current_user()
-submission_id = db.add_submission(
-    conn, dialect_word, location_text, image_data,
-    user_id=user['id'] if user else None,
-    is_public=True  # or False for private
-)
-```
-
-### **Option 2: Keep Current Setup (No Privacy)**
-
-If you want to keep the current open setup:
-
-- **No changes needed** - everything stays public
-- **Good for:** Public datasets, research, community projects
-- **Consider:** Adding a disclaimer about public data
-
-## 🔍 **What Users Can See/Do**
-
-### **Without Login (Public Access):**
-
-- ✅ View all public submissions on the map
-- ✅ Browse the community gallery
-- ✅ Search and filter submissions
-- ✅ Download public data as CSV
-- ❌ Cannot submit content
-- ❌ Cannot see private submissions
-- ❌ Cannot modify any data
-
-### **With Login (Authenticated Users):**
 
 - ✅ All public access features
 - ✅ Submit new content (public or private)
