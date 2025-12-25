@@ -1,95 +1,74 @@
-# Desi Dialect Map 🗺️📍
+# Desi Dialect Map
+A crowdsourcing platform for collecting and visualizing geotagged Indian dialect data to support inclusive AI development.
 
-Welcome to the repository for the **Desi Dialect Map**! This is a collaborative project by the **ahjin Guild** team from Sreenidhi Institute of Science and Technology, designed to be a high-performance, interactive platform for documenting and celebrating the rich linguistic diversity of India.
+## Problem Statement
+India's linguistic landscape is incredibly diverse, with dialects often changing every few kilometers. However, most existing digital datasets and AI models focus primarily on standardized versions of major languages. This exclusion of vernacular variations results in technology that fails to serve a significant portion of the population. There is a critical need for a structured, geotagged corpus of dialect data to train more inclusive language models.
 
-### [➡️ View the Live Demo](https://desi-dialect-map.streamlit.app/)
+## Key Features
+- **Crowdsourced Data Collection:** Interface for users to upload images and tag them with specific dialect words, language, and location.
+- **Interactive Mapping:** Visualizes submissions on a map of India using Folium, featuring marker clustering and density heatmaps.
+- **Automated Geocoding:** Integrates with Geopy (Nominatim) to convert user-provided location names into precise geographic coordinates.
+- **User Authentication:** Secure login and signup system integrated directly with the Indic Corpus Collections API.
+- **Contribution Dashboard:** Allows users to view their submission history, track verification status, and browse a gallery of their uploaded content.
+- **API Integration:** Fully decoupled frontend that communicates with the Indic Corpus Collections API for all data storage and retrieval operations.
 
----
-
-## ✨ About the Project
-
-The Desi Dialect Map is a full-stack Streamlit application that functions as a powerful "Corpus Collection Engine." It allows users to upload images of objects, scenes, or cultural items and tag them with the words used in their local dialects. This crowdsourced data is then visualized on an interactive map of India, creating a living, breathing atlas of our country's vernacular languages.
-
-The mission is to ethically gather a rich, geotagged dataset of text and images to power the next generation of inclusive AI through integration with the Indic Corpus Collections API.
-
-## 🚀 Key Features
-
-- **Interactive Folium Map:** A high-performance map with custom emoji markers, interactive popups (displaying images and dialect words), and a heatmap layer to visualize submission density.
-- **API-First Architecture:** Full integration with the Indic Corpus Collections API for centralized data storage and collaboration.
-- **Advanced Data Exploration:** The platform features a powerful search bar and state-based dropdown to filter submissions on both the map and the gallery.
-- **Performance-Optimized:** The application is built for speed, with smart caching for all API queries and geocoding lookups to ensure a snappy user experience.
-- **Dynamic UI:** The app features a "Submission of the Day" section to keep the content fresh and engaging, along with a dashboard of project statistics.
-- **Data Export:** All collected data can be easily exported to a CSV file for further analysis.
-- **Category Management:** Support for predefined categories to organize submissions effectively.
-
-## 👥 Team ahjin Guild
-
-Our team brings together diverse expertise to create this innovative platform:
-
-| Role                                  | Team Member     | Key Contributions                                              |
-| ------------------------------------- | --------------- | -------------------------------------------------------------- |
-| **Tech Lead & Full-Stack Developer**  | Prem Sai K      | Core application development, deployment, project architecture |
-| **Full-Stack Developer & AI/ML Lead** | Lakshya Chitkul | Database design, data pipeline architecture, AI integration    |
-| **Data Scientist & Product Lead**     | Eesha Gone      | Data analysis, UI/UX guidance, product strategy                |
-| **Growth & Marketing Lead**           | Architha Reddy  | User acquisition, community building, marketing strategy       |
-| **Core Developer & Problem Solver**   | Bommu Bhavani   | Database operations, testing, quality assurance                |
-
-## 💻 Tech Stack
-
-This project was built with a modern, API-first stack:
-
-- **Frontend:** Streamlit
-- **Backend:** Python, Indic Corpus Collections API
-- **Mapping:** Folium, Geopy
+## Tech Stack
+- **Frontend Framework:** Streamlit (Python)
+- **Mapping Library:** Folium, Streamlit-Folium
+- **Geocoding:** Geopy
+- **Image Processing:** Pillow (PIL)
+- **Backend Service:** Indic Corpus Collections API (RESTful)
 - **Data Handling:** Pandas
-- **Deployment:** Streamlit Community Cloud
-- **Development:** VSCode with team-standardized configuration
-- **Version Control:** GitLab with comprehensive CI/CD
 
-## 🗂️ API Integration Setup
+## Architecture
+The application operates as a stateless frontend client interacting with external services:
+1.  **User Interface:** The Streamlit app captures user inputs (images, text, metadata).
+2.  **Geocoding Layer:** Location strings are resolved to latitude/longitude coordinates via the Nominatim service.
+3.  **API Layer:** Authenticated requests (using Bearer tokens) are sent to the Indic Corpus Collections API to store records.
+4.  **Visualization:** Data is fetched from the API and rendered on the client side using Folium maps and image galleries.
 
-This project uses **100% API-based storage** - no local database required!
+## Local Development
 
 ### Prerequisites
+- Python 3.8 or higher
+- Git
 
-- Python 3.7+ with internet connectivity
-- Access to Indic Corpus Collections API
+### Installation
+1.  Clone the repository:
+    ```bash
+    git clone <repository-url>
+    cd soai2025-ahjin-guild-dialect-map
+    ```
 
-### Quick Start
+2.  Create and activate a virtual environment:
+    ```bash
+    python -m venv venv
+    source venv/bin/activate  # On Windows: venv\Scripts\activate
+    ```
 
-1. Install dependencies: `pip install -r requirements.txt`
-2. Run the app: `streamlit run app.py`
-3. Login with your API credentials to start contributing
+3.  Install dependencies:
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-### API Authentication
+4.  Run the application:
+    ```bash
+    streamlit run app.py
+    ```
 
-The application integrates with the Indic Corpus Collections API for:
-- User authentication via OTP
-- Record submission and retrieval
-- Category management
-- Data synchronization across users
+The application will be accessible at `http://localhost:8501`.
 
-## 🤝 Contributing
+## Deployment
+The application is optimized for deployment on Streamlit Cloud. Since it relies on an external API for data persistence, no persistent storage configuration is required on the hosting server.
 
-This is a collaborative project by the ahjin Guild team. We welcome feedback and contributions from the community. If you have an idea for a new feature or find a bug, please feel free to open an issue using our templates.
+## Limitations
+-   **API Dependency:** The application is strictly dependent on the availability of the Indic Corpus Collections API. It does not currently support offline caching or local storage fallback.
+-   **Geocoding Rate Limits:** The use of the free Nominatim service may result in rate limiting during high-traffic periods.
+-   **Category Filtering:** Advanced filtering by category is currently limited by the API response structure.
 
-### **Development Workflow**
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a merge request using our template
-5. Wait for team review and approval
-
-### **Code Standards**
-
-- Follow our VSCode configuration for consistent formatting
-- Use the provided GitLab templates for issues and merge requests
-- Ensure all tests pass before submitting changes
-
----
-
-Thank you for checking out our project!
-
-**- Team ahjin Guild**  
-_Sreenidhi Institute of Science and Technology_
+## Contributors
+-   **Prem Sai K** - Tech Lead & Full-Stack Developer
+-   **Lakshya Chitkul** - Full-Stack Developer & AI/ML Lead
+-   **Eesha Gone** - Data Scientist & Product Lead
+-   **Architha Reddy** - Growth & Marketing Lead
+-   **Bommu Bhavani** - Core Developer
